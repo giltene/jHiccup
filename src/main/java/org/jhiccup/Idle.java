@@ -23,12 +23,15 @@ public class Idle extends Thread {
     class IdleConfiguration {
         public long runTimeMs = 10000;
         public boolean verbose = false;
+        public boolean useIdleReader = true;
 
         public void parseArgs(String[] args) {
             try {
             for (int i = 0; i < args.length; ++i) {
                 if (args[i].equals("-v")) {
                     config.verbose = true;
+                } else if (args[i].equals("-n")) {
+                        config.useIdleReader = false;
                 } else if (args[i].equals("-t")) {
                     runTimeMs = Long.parseLong(args[++i]);
                 } else {
@@ -76,7 +79,9 @@ public class Idle extends Thread {
     }
 
     public void run() {
-        new IdleReader();
+        if (config.useIdleReader) {
+            new IdleReader();
+        }
         try {
             if (config.verbose)
                 System.out.println("Idling for " + config.runTimeMs + "msec...");
