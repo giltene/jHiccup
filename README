@@ -46,7 +46,7 @@ Here is a Java agent usage example with explicit parameters:
 
 % java -javaagent:jHiccup.jar="-d 0 -i 1000 -l hiccuplog -c c.hiccuplog" MyProgram.jar -a -b -c
 
-THis example will record hiccups experienced during the running of MyProgram.jar
+This example will record hiccups experienced during the running of MyProgram.jar
 in log files hiccuplog and hiccuplog.hgrm, while at the same time recording the
 hiccups experienced by a control process running in a separate JVM in log files
 c.hiccuplog and c.hiccuplog.hgrm. Measurement will start immediately upon
