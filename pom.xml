@@ -6,7 +6,7 @@
 
     <groupId>org.jHiccup</groupId>
     <artifactId>jHiccup</artifactId>
-    <version>1.3.3</version>
+    <version>1.3.4</version>
 
     <name>jHiccup</name>
 
@@ -39,7 +39,7 @@
     </developers>
 
     <scm>
-        <url>https://github.com/giltene/jHiccup</url>
+        <url>scm:git:git://github.com/giltene/jHiccup.git</url>
         <connection>scm:git:git://github.com/giltene/jHiccup.git</connection>
         <developerConnection>scm:git:git@github.com:giltene/jHiccup.git</developerConnection>
     </scm>
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>org.HdrHistogram</groupId>
             <artifactId>HdrHistogram</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.6</version>
         </dependency>
     </dependencies>
     
