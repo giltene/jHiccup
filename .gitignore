@@ -7,3 +7,5 @@ jHiccup.iml
 .project
 .settings
 release.properties
+pom.xml.releaseBackup
+
