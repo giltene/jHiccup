@@ -134,7 +134,7 @@ import java.util.concurrent.Semaphore;
 
 public class HiccupMeter extends Thread {
 
-    final String versionString = "jHiccup version 1.3.2";
+    final String versionString = "jHiccup version 1.3.5";
 
     final PrintStream log;
 
