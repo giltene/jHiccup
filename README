@@ -44,7 +44,7 @@ You can find the available options for the Java agent mode by running:
 
 Here is a Java agent usage example with explicit parameters:
 
-% java -javaagent:jHiccup.jar="-d 0 -i 1000 -l hiccuplog -c c.hiccuplog" MyProgram.jar -a -b -c
+% java -javaagent:jHiccup.jar="-d 0 -i 1000 -l hiccuplog -c" MyProgram.jar -a -b -c
 
 This example will record hiccups experienced during the running of MyProgram.jar
 in log files hiccuplog and hiccuplog.hgrm, while at the same time recording the

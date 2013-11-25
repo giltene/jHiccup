@@ -6,7 +6,7 @@
 
     <groupId>org.jHiccup</groupId>
     <artifactId>jHiccup</artifactId>
-    <version>1.3.5</version>
+    <version>1.3.5-SNAPSHOT</version>
 
     <name>jHiccup</name>
 
@@ -102,6 +102,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
+                    <finalName>jHiccup</finalName>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
@@ -114,6 +115,12 @@
                         </manifestEntries>
                     </archive>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0-beta-9</version>
             </plugin>
 
         </plugins>

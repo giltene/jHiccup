@@ -246,8 +246,12 @@ public class HiccupMeter extends Thread {
                 }
 
                 if (launchControlProcess) {
+                    File filePath = new File(logFileName);
+                    String parentFileNamePart = filePath.getParent();
+                    String childFileNamePart = filePath.getName();
                     // Derive control process log file name from logFileName:
-                    controlProcessLogFileName = "c." + logFileName;
+                    File controlFilePath = new File(parentFileNamePart, "c." + childFileNamePart);
+                    controlProcessLogFileName = controlFilePath.getPath();
 
                     // Derive controlProcessCommand from our java home, class name, and parsed
                     // options:
