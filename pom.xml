@@ -2,13 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.jHiccup</groupId>
+    <groupId>org.jhiccup</groupId>
     <artifactId>jHiccup</artifactId>
     <version>1.3.6-SNAPSHOT</version>
 
     <name>jHiccup</name>
 
-    <url>http://latencyutils.github.io/LatencyUtils/</url>
+    <url>http://jhiccup.org</url>
 
     <description>
         jHiccup is a non-intrusive instrumentation tool that logs and records
@@ -99,6 +99,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <finalName>jHiccup</finalName>
                     <archive>
@@ -106,6 +107,8 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
                             <mainClass>org.jhiccup.HiccupMeter</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
                             <Premain-Class>org.jhiccup.HiccupMeter</Premain-Class>
@@ -132,9 +135,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.HdrHistogram</groupId>
+            <groupId>org.hdrhistogram</groupId>
             <artifactId>HdrHistogram</artifactId>
-            <version>1.0.6</version>
+            <version>1.0.8</version>
         </dependency>
     </dependencies>
     

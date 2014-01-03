@@ -3,7 +3,7 @@
  * as explained at http://creativecommons.org/publicdomain/zero/1.0/
  *
  * @author Gil Tene
- * @version 1.3.2
+ * @version 1.3.6
  */
 
 package org.jhiccup;
@@ -134,7 +134,7 @@ import java.util.concurrent.Semaphore;
 
 public class HiccupMeter extends Thread {
 
-    final String versionString = "jHiccup version 1.3.5";
+    final String versionString = "jHiccup version 1.3.6";
 
     final PrintStream log;
 
@@ -151,7 +151,7 @@ public class HiccupMeter extends Thread {
 
         public boolean verbose = false;
         public boolean allocateObjects = false;
-        public String logFileName = deriveLogFileName();
+        public String logFileName = "hiccup.%date.%pid";
         public boolean logFileExplicitlySpecified = false;
         public String inputFileName = null;
 
@@ -174,13 +174,25 @@ public class HiccupMeter extends Thread {
         public boolean error = false;
         public String errorMessage = "";
 
-        String deriveLogFileName() {
+//        String deriveLogFileName() {
+//            final String processName =
+//                    java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+//            final String processID = processName.split("@")[0];
+//            final SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd.HHmm");
+//            final String formattedDate = formatter.format(new Date());
+//            return "hiccup." + formattedDate + "." + processID;
+//        }
+
+        String fillInPidAndDate(String logFileName) {
             final String processName =
                     java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
             final String processID = processName.split("@")[0];
             final SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd.HHmm");
             final String formattedDate = formatter.format(new Date());
-            return "hiccup." + formattedDate + "." + processID;
+
+            logFileName = logFileName.replaceAll("%pid", processID);
+            logFileName = logFileName.replaceAll("%date", formattedDate);
+            return logFileName;
         }
 
         public HiccupMeterConfiguration(final String[] args) {
@@ -218,6 +230,8 @@ public class HiccupMeter extends Thread {
                     }
                 }
 
+                logFileName = fillInPidAndDate(logFileName);
+
                 if (attachToProcess) {
                     if (!startDelayMsExplicitlySpecified) {
                         startDelayMs = 0;
@@ -248,9 +262,12 @@ public class HiccupMeter extends Thread {
                 if (launchControlProcess) {
                     File filePath = new File(logFileName);
                     String parentFileNamePart = filePath.getParent();
+                    if (parentFileNamePart == null) {
+                        parentFileNamePart = "";
+                    }
                     String childFileNamePart = filePath.getName();
                     // Derive control process log file name from logFileName:
-                    File controlFilePath = new File(parentFileNamePart, "c." + childFileNamePart);
+                    File controlFilePath = new File(parentFileNamePart + childFileNamePart + ".c");
                     controlProcessLogFileName = controlFilePath.getPath();
 
                     // Derive controlProcessCommand from our java home, class name, and parsed
@@ -294,8 +311,9 @@ public class HiccupMeter extends Thread {
                 " [-h]                        help\n" +
                 " [-v]                        verbose\n" +
                 " [-l logFileName]            Log hiccup information into logFileName and logFileName.hgrm\n" +
+                "                             (will replace occurrences of %pid and %date with appropriate information)\n" +
                 " [-c]                        Launch a control process in a separate JVM\n" +
-                "                             logging hiccup data into c.logFileName and c.logFileName.hgrm\n" +
+                "                             logging hiccup data into logFileName.c and logFileName.c.hgrm\n" +
                 " [-p pidOfProcessToAttachTo] Attach to the process with given pid and inject jHiccup as an agent\n" +
                 " [-j jHiccupJarFileName]     File name for the jHiccup.jar file, and required with [-p] option above\n" +
                 " [-d startDelayMs]           Delay the beginning of hiccup measurement by\n" +

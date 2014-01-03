@@ -5,8 +5,8 @@
 # Written by Gil Tene, and released to the public domain, as explained at
 #  http://creativecommons.org/publicdomain/zero/1.0/
 #
-# V 1.3.2
-JHICCUP_Version=1.3.2
+# V 1.3.6
+JHICCUP_Version=1.3.6
 #
 # jHiccup is a platform pause measurement tool, it is meant to observe the
 # underlying platform (JVM, OS, HW, etc.) responsiveness while under an
@@ -227,9 +227,10 @@ if [ $JHiccupArgs_parse_error ]; then
 		echo "Where:"
 		echo " -l logname                Sets the log files to <logname> and <logname>.hgrm"
 		echo "                           (default <logname> is \"hiccup.yymmdd.hhmm.pid\") "
+		echo "                           (replaces occurrences of %pid and %date with appropriate info)"
 		echo " -c                        Concurrently start a control process to record hiccups"
 		echo "                           experienced by an Idle load running on a separate jvm"
-		echo "                           in log files c.<logname> and c.<logname>.hgrm"
+		echo "                           in log files <logname>.c and <logname>.c.hgrm"
 		echo " -p pidOfProcessToAttachTo Attach to the process with given pid and inject jHiccup as an agent"
 		echo "                           (no default)"
 		echo " -d startupDelayMsec       Sets the delay, in milliseconds before sampling starts"

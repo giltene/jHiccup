@@ -152,7 +152,7 @@ If you use jHiccup on other operating systems and setups, please report back
 on your experience so that we can expand the list.
 
 ----------------------------------------------------------------------------
-Using a control prcoess to concurrently record baseline idle load hiccups:
+Using a control process to concurrently record baseline idle load hiccups:
 
 It is often useful to compare the hiccup behavior experienced by a running
 application with a "control" hiccup level of an idle workload, running on
@@ -161,17 +161,24 @@ such control measurement convenient, jHiccup supports a "-c" option that will
 launch a concurrently executing "control process" and will separately log
 hiccup information of an idle workload running on a separate jvm for the
 duration of the instrumented application run. When selected, the control
-process log file names will match those used for the preceeded application,
-preceeded with a "c.".
+process log file name will match those used for the launching application,
+followed with a ".c".
 
 For example:
 
 % jHiccup -l mylog -c /usr/bin/java <Java args> -jar MyProgram.jar -a -b -c
 
 Will produce log files mylog and mylog.hgrm detaling the hiccup behavior
-during the execution of MyProgram.jar, as well as log files c.mylog and
-c.mylog.hgrm detailing the hiccup behavior of an idle workload running on
+during the execution of MyProgram.jar, as well as log files mylog.c and
+mylog.c.hgrm detailing the hiccup behavior of an idle workload running on
 a separate jvm at the same time.
+
+----------------------------------------------------------------------------
+Log file name recognizes and fills in %pid and %date terms
+
+When a log file name is specified with the -l option, the terms %pid and
+%date will be filled in with the appropriate information. The default
+log file name setting is simply hiccup.%date.%pid.
 
 ----------------------------------------------------------------------------
 Using jHiccup to process latency log files:
