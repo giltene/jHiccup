@@ -767,7 +767,7 @@ public class HiccupMeter extends Thread {
     }
 
     public static void agentmain(String argsString, java.lang.instrument.Instrumentation inst) {
-        final String[] args = (argsString != null) ? argsString.split("[ ,;]+") : new String[0];
+        final String[] args = ((argsString != null) && !argsString.equals("")) ? argsString.split("[ ,;]+") : new String[0];
         final String avoidRecursion = System.getProperty("org.jhiccup.avoidRecursion");
         if (avoidRecursion != null) {
             return; // If this is a -c invocation, we do not want the agent to do anything...
@@ -776,7 +776,7 @@ public class HiccupMeter extends Thread {
     }
 
     public static void premain(String argsString, java.lang.instrument.Instrumentation inst) {
-        final String[] args = (argsString != null) ? argsString.split("[ ,;]+") : new String[0];
+        final String[] args = ((argsString != null) && !argsString.equals("")) ? argsString.split("[ ,;]+") : new String[0];
         final String avoidRecursion = System.getProperty("org.jhiccup.avoidRecursion");
         if (avoidRecursion != null) {
             return; // If this is a -c invocation, we do not want the agent to do anything...
