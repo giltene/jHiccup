@@ -116,7 +116,7 @@ and log to logfiles hlog and hlog.hgrm, it would become:
 The jar file also includes a simple "Idle" class to facilitate sanity checks
 without an external program. Here is a simple sanity test example: jHiccup
 with a 4 sec delay on recording start, wrapping an Idle run that does nothing
-or 30 seconds and exits:
+for 30 seconds and exits:
 
 % jHiccup -d 4000 /usr/bin/java org.jhiccup.Idle -t 30000
 
@@ -168,7 +168,7 @@ For example:
 
 % jHiccup -l mylog -c /usr/bin/java <Java args> -jar MyProgram.jar -a -b -c
 
-Will produce log files mylog and mylog.hgrm detaling the hiccup behavior
+Will produce log files mylog and mylog.hgrm detailing the hiccup behavior
 during the execution of MyProgram.jar, as well as log files mylog.c and
 mylog.c.hgrm detailing the hiccup behavior of an idle workload running on
 a separate jvm at the same time.
@@ -217,11 +217,11 @@ exec "$JHICCUP_HOME/jHiccup" "$_RUNJAVA" "$LOGGING_CONFIG" $JAVA_OPTS $CATALINA_
 ----------------------------------------------------------------------------
 Note: Use of HdrHistogram.
 
-jHiccup depends on and makes systemic use of HdrHistogram to collected and report
-on the statistical distribution of hiccups. This package includes an HdrHistogram.jar
-jar file to support this functionality. HdrHistogram sources, documentation,
-and a ready to use jar file can all be found on GitHub,
-at http://giltene.github.com/HdrHistogram
+jHiccup depends on and makes systemic use of HdrHistogram to collected and
+report on the statistical distribution of hiccups. This package includes an
+HdrHistogram.jar jar file to support this functionality. HdrHistogram sources,
+documentation, and a ready to use jar file can all be found on GitHub, at
+http://giltene.github.com/HdrHistogram
 
 ----------------------------------------------------------------------------
 Building jHiccup:

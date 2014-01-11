@@ -41,20 +41,20 @@ JHICCUP_Version=1.3.7
 # the -l <logname> can be used to override the log file name).
 # The sequential log file logs a single %'ile stats line for each reporting
 # interval (set with -i <reportingIntervalMs>, defaults to 5000 msec).
-# The histogram log file includes a detailed %'ile histgram of the run so far.
-# A new histogram log file will be produced each interval, and willreplace the
+# The histogram log file includes a detailed %'ile histogram of the run so far.
+# A new histogram log file will be produced each interval, and will replace the
 # one generated in the previous interval.
 #
-# jHiccp can be configured to delay the start of measurement
+# jHiccup can be configured to delay the start of measurement
 # (using the -d <startDelayMs> flag, defaults to 30000 msec). 
 #
 # jHiccup will continue to run until the application it is wrapping exists.
 #
 # Using the -c option (off by default), jHiccup can be configured to launch
-# a concurrently executinga "control process" that will separately log hiccup
+# a concurrently executing "control process" that will separately log hiccup
 # information of an idle workload running on a separate jvm for the duration
 # of the instrumented application run. When selected, the control process log
-# file names will match those used for the preceeded application, preceeded
+# file names will match those used for the preceded application, preceded
 # with a "c.".
 #
 # For convenience in testing, jHiccup is executed as a simple wrapper for
@@ -279,7 +279,7 @@ fi
 # Key Assumption: only cygwin/Windows installations will have a cygpath command...
 cygpath -w $JHICCUP_JAR_FILE &> /dev/null
 if [ $? -eq 0 ] ; then
-    # if using cygwin, use valid windows-style classpth
+    # if using cygwin, use valid windows-style classpath
     JHICCUP_JAR_FILE=`cygpath -w $JHICCUP_JAR_FILE`
 	echo Windows path for hiccup jar file is $JHICCUP_JAR_FILE
 fi
