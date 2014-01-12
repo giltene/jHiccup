@@ -91,6 +91,8 @@
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
+                            <!-- Make sure tools.jar does not get copied, and only gets used for compilation classpath: -->
+                            <excludeArtifactIds>tools</excludeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>
@@ -140,9 +142,11 @@
             <version>1.0.8</version>
         </dependency>
         <dependency>
+            <!--Need tools.jar in compilation classpath. JDK 1.7 no longer has it there by default: -->
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
-            <version>1.6.0</version>
+            <!-- version number is irrelevant since we exclude this from the dependencies plugin: -->
+            <version>99.9.9</version>
             <scope>system</scope>
             <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
