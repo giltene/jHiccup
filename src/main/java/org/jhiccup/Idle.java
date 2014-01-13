@@ -31,7 +31,7 @@ public class Idle extends Thread {
                 if (args[i].equals("-v")) {
                     config.verbose = true;
                 } else if (args[i].equals("-n")) {
-                        config.useIdleReader = false;
+                    config.useIdleReader = false;
                 } else if (args[i].equals("-t")) {
                     runTimeMs = Long.parseLong(args[++i]);
                 } else {
@@ -39,7 +39,7 @@ public class Idle extends Thread {
                 }
             }
             } catch (Exception e) {
-                System.err.println("Usage: java Idle [-v] [-h] [-t runTimeMs] ");
+                System.err.println("Usage: java Idle [-v] [-n] [-t runTimeMs]");
                 System.exit(1);
             }
         }
