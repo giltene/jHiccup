@@ -3,7 +3,6 @@
  * as explained at http://creativecommons.org/publicdomain/zero/1.0/
  *
  * @author Gil Tene
- * @version 1.3.7
  */
 
 package org.jhiccup;
@@ -134,7 +133,7 @@ import java.util.concurrent.Semaphore;
 
 public class HiccupMeter extends Thread {
 
-    final String versionString = "jHiccup version 1.3.7";
+    final String versionString = "jHiccup version 1.3.8";
 
     final PrintStream log;
 

@@ -3,7 +3,6 @@
  * as explained at http://creativecommons.org/publicdomain/zero/1.0/
  *
  * @author Gil Tene
- * @version 1.3.7
  */
 
 package org.jhiccup;
