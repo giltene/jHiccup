@@ -71,7 +71,7 @@ import java.util.concurrent.Semaphore;
  * configured to terminate measurement after a given length of time (using the
  * -t <runTimeMs> flag). If the -t flag is not used, HiccupMeter will continue
  * to run until the Class executed with via the -exec parameter (see below)
- * exits, or indefnitely (if no -exec is used).
+ * exits, or indefinitely (if no -exec is used).
  * <p>
  * HiccupMeter can be configured to launch a separate "control process" on
  * startup (using the -c <controlProcessLogFileName> flag, defaulting to
@@ -127,7 +127,7 @@ import java.util.concurrent.Semaphore;
  *
  * Note: HiccupMeter makes systemic use of HdrHistogram to collected and report
  * on the statistical distribution of hiccups. HdrHistogram sources, documentation,
- * and a ready to use jar file can all be found on GitGub,
+ * and a ready to use jar file can all be found on GitHub,
  * at http://giltene.github.com/HdrHistogram
  */
 
