@@ -154,6 +154,7 @@ public class HiccupMeter extends Thread {
         public String logFileName = "hiccup.%date.%pid";
         public boolean logFileExplicitlySpecified = false;
         public String inputFileName = null;
+        public boolean logFormatCsv = false;
 
         public boolean launchControlProcess = false;
         public String controlProcessLogFileName = null;
@@ -225,6 +226,8 @@ public class HiccupMeter extends Thread {
                         inputFileName = args[++i];
                     } else if (args[i].equals("-c")) {
                         launchControlProcess = true;
+                    } else if (args[i].equals("-o")) {
+                        logFormatCsv = true;
                     } else {
                         throw new Exception("Invalid args: " + args[i]);
                     }
@@ -242,7 +245,6 @@ public class HiccupMeter extends Thread {
                     }
                     agentArgs = "-d " + startDelayMs +
                                 " -i " + reportingIntervalMs +
-                                " -d " + startDelayMs +
                                 ((startTimeAtZero) ? " -0" : "") +
                                 " -r " + resolutionMs;
 
@@ -256,6 +258,10 @@ public class HiccupMeter extends Thread {
 
                     if (verbose) {
                         agentArgs += " -v";
+                    }
+
+                    if (logFormatCsv) {
+                        agentArgs += " -o";
                     }
                 }
 
@@ -301,7 +307,7 @@ public class HiccupMeter extends Thread {
                 System.err.println(errorMessage);
 
                 String validArgs =
-                        "\"[-v] [-c] [-0] [-p pidOfProcessToAttachTo] [-j jHiccupJarFileName] " +
+                        "\"[-v] [-c] [-o] [-0] [-p pidOfProcessToAttachTo] [-j jHiccupJarFileName] " +
                         "[-i reportingIntervalMs] [-h] [-t runTimeMs] [-d startDelayMs] " +
                         "[-l logFileName] [-r resolutionMs] [-terminateWithStdInput] [-f inputFileName]\"\n";
 
@@ -312,6 +318,7 @@ public class HiccupMeter extends Thread {
                 " [-v]                        verbose\n" +
                 " [-l logFileName]            Log hiccup information into logFileName and logFileName.hgrm\n" +
                 "                             (will replace occurrences of %pid and %date with appropriate information)\n" +
+                " [-o]                        Output log as CSV (Note only hiccup statistics will be formatted)\n" +
                 " [-c]                        Launch a control process in a separate JVM\n" +
                 "                             logging hiccup data into logFileName.c and logFileName.c.hgrm\n" +
                 " [-p pidOfProcessToAttachTo] Attach to the process with given pid and inject jHiccup as an agent\n" +
@@ -339,6 +346,7 @@ public class HiccupMeter extends Thread {
      *    [-v]                           verbose
      *    [-l logFileName]               Log hiccup information into <i>logFileName</i> and
      *                                   <i>logFileName.hgrm</i>
+     *    [-o]                           Output log as CSV (Note only hiccup statistics will be formatted)
      *    [-c controlProcessLogFileName] Launch a control process in a separate JVM
      *                                   logging hiccup data into <i>controlProcessLogFileName</i>
      *                                   and <i>controlProcessLogFileName.hgrm</i>
@@ -607,6 +615,13 @@ public class HiccupMeter extends Thread {
         long jvmStartTime = now - uptimeAtInitialStartTime;
         long reportingStartTime = jvmStartTime;
 
+        String logFormat;
+        if (config.logFormatCsv) {
+            logFormat = "%.3f,%d,%.3f,%.3f,%.3f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n";
+        } else {
+            logFormat = "%4.3f: I:%d ( %7.3f %7.3f %7.3f ) T:%d ( %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f )\n";
+        }
+
 
         final Histogram initialHistogram =
                 new Histogram(config.highestTrackableValue, config.numberOfSignificantValueDigits);
@@ -658,7 +673,12 @@ public class HiccupMeter extends Thread {
                 log.println("#[Data read from input file \"" + config.inputFileName + "\" at " + new Date() + "]");
             }
 
-            log.println("Time: IntervalPercentiles:count ( 50% 90% Max ) TotalPercentiles:count ( 50% 90% 99% 99.9% 99.99% Max )");
+            if (config.logFormatCsv) {
+                log.println("\"Time\",\"Int_Count\",\"Int_50%\",\"Int_90%\",\"Int_Max\",\"Total_Count\"," +
+                            "\"Total_50%\",\"Total_90%\",\"Total_99%\",\"Total_99.9%\",\"Total_99.99%\",\"Total_Max\"");
+            } else {
+                log.println("Time: IntervalPercentiles:count ( 50% 90% Max ) TotalPercentiles:count ( 50% 90% 99% 99.9% 99.99% Max )");
+            }
 
             long nextReportingTime = startTime + config.reportingIntervalMs;
 
@@ -678,8 +698,7 @@ public class HiccupMeter extends Thread {
                     if (latestHistogram.getHistogramData().getTotalCount() > 0) {
                         final HistogramData latestHistogramData = latestHistogram.getHistogramData();
                         final HistogramData accumulatedHistogramData = accumulatedHistogram.getHistogramData();
-                        log.format(Locale.US,
-                                "%4.3f: I:%d ( %7.3f %7.3f %7.3f ) T:%d ( %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f )\n",
+                        log.format(Locale.US, logFormat,
                                 (now - reportingStartTime)/1000.0,
                                 // values recorded during the last reporting interval
                                 latestHistogramData.getTotalCount(),
