@@ -45,7 +45,7 @@ JHICCUP_Version=1.3.8
 # one generated in the previous interval.
 #
 # jHiccup can be configured to delay the start of measurement
-# (using the -d <startDelayMs> flag, defaults to 30000 msec). 
+# (using the -d <startDelayMs> flag, defaults to 30000 msec).
 #
 # jHiccup will continue to run until the application it is wrapping exists.
 #
@@ -71,7 +71,7 @@ JHICCUP_Version=1.3.8
 # or, for a program that is launch like this:
 #
 # /usr/bin/java <Java args> -jar UsefulProgram.jar -a -b -c
-# 
+#
 # The launch line would become:
 #
 # jHiccup /usr/bin/java <Java args> -jar UsefulProgram.jar -a -b -c
@@ -121,6 +121,9 @@ for var in $@; do
 		elif [ $var = "-c" ]; then
 			# -c is a flag arg to jHiccup
 			JHiccupArgs="$JHiccupArgs $var"
+		elif [ $var = "-o" ]; then
+			# -o is a flag arg to jHiccup
+			JHiccupArgs="$JHiccupArgs $var"
 		elif [ ${var:0:1} = "-" ]; then
 			# This is a parameter arg to jHiccup
 			JHiccupArgs="$JHiccupArgs $var"
@@ -165,6 +168,7 @@ JHICCUP_PidOfProcessToAttacheToArg=
 readingPidOfProcessToAttacheToArg=0
 
 verboseOutput=
+logFormatCsv=
 startTimeAtZero=
 JHiccupArgs_parse_error=
 JHICCUP_ControlProcessFlag=
@@ -199,6 +203,8 @@ for var in $JHiccupArgs; do
 		JHICCUP_ControlProcessFlag=1
 	elif [ $var = "-0" ]; then
 		startTimeAtZero=1
+	elif [ $var = "-o" ]; then
+		logFormatCsv=1
     elif [ $var = "-v" ]; then
 		verboseOutput=1
 		echo jHiccup version $JHICCUP_Version
@@ -227,6 +233,7 @@ if [ $JHiccupArgs_parse_error ]; then
 		echo " -l logname                Sets the log files to <logname> and <logname>.hgrm"
 		echo "                           (default <logname> is \"hiccup.yymmdd.hhmm.pid\") "
 		echo "                           (replaces occurrences of %pid and %date with appropriate info)"
+		echo " -o                        Output log as CSV (Note only hiccup statistics will be formatted)"
 		echo " -c                        Concurrently start a control process to record hiccups"
 		echo "                           experienced by an Idle load running on a separate jvm"
 		echo "                           in log files <logname>.c and <logname>.c.hgrm"
@@ -264,6 +271,10 @@ fi
 
 if [ $startTimeAtZero ]; then
 	JHICCUP_Options="${JHICCUP_Options}-0 "
+fi
+
+if [ $logFormatCsv ]; then
+	JHICCUP_Options="${JHICCUP_Options}-o "
 fi
 
 if [ $JHICCUP_ControlProcessFlag ]; then
