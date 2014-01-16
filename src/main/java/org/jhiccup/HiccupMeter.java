@@ -174,15 +174,6 @@ public class HiccupMeter extends Thread {
         public boolean error = false;
         public String errorMessage = "";
 
-//        String deriveLogFileName() {
-//            final String processName =
-//                    java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-//            final String processID = processName.split("@")[0];
-//            final SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd.HHmm");
-//            final String formattedDate = formatter.format(new Date());
-//            return "hiccup." + formattedDate + "." + processID;
-//        }
-
         String fillInPidAndDate(String logFileName) {
             final String processName =
                     java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
@@ -317,7 +308,7 @@ public class HiccupMeter extends Thread {
                 " [-v]                        verbose\n" +
                 " [-l logFileName]            Log hiccup information into logFileName and logFileName.hgrm\n" +
                 "                             (will replace occurrences of %pid and %date with appropriate information)\n" +
-                " [-o]                        Output log as CSV (Note only hiccup statistics will be formatted)\n" +
+                " [-o]                        Output log files in CSV format\n" +
                 " [-c]                        Launch a control process in a separate JVM\n" +
                 "                             logging hiccup data into logFileName.c and logFileName.c.hgrm\n" +
                 " [-p pidOfProcessToAttachTo] Attach to the process with given pid and inject jHiccup as an agent\n" +
@@ -570,9 +561,9 @@ public class HiccupMeter extends Thread {
             if (config.logFileName != null) {
                 final PrintStream histogramLog =
                         new PrintStream(new FileOutputStream(config.logFileName + ".hgrm.tmp"),false);
-                histogramLog.println("jHiccup histogram report, " + new Date() + " :\n--------------------\n");
+                histogramLog.print("# jHiccup histogram report, " + new Date() + " :\n# --------------------\n");
                 histogram.getHistogramData().outputPercentileDistribution(histogramLog,
-                        config.histogramDumpTicksPerHalf, config.outputValueUnitRatio);
+                        config.histogramDumpTicksPerHalf, config.outputValueUnitRatio, config.logFormatCsv);
                 histogramLog.close();
                 final File fromFile = new File(config.logFileName + ".hgrm.tmp");
                 final File toFile = new File(config.logFileName + ".hgrm");
@@ -620,7 +611,6 @@ public class HiccupMeter extends Thread {
         } else {
             logFormat = "%4.3f: I:%d ( %7.3f %7.3f %7.3f ) T:%d ( %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f )\n";
         }
-
 
         final Histogram initialHistogram =
                 new Histogram(config.highestTrackableValue, config.numberOfSignificantValueDigits);

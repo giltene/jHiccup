@@ -233,7 +233,7 @@ if [ $JHiccupArgs_parse_error ]; then
 		echo " -l logname                Sets the log files to <logname> and <logname>.hgrm"
 		echo "                           (default <logname> is \"hiccup.yymmdd.hhmm.pid\") "
 		echo "                           (replaces occurrences of %pid and %date with appropriate info)"
-		echo " -o                        Output log as CSV (Note only hiccup statistics will be formatted)"
+		echo " -o                        Output log files in CSV format"
 		echo " -c                        Concurrently start a control process to record hiccups"
 		echo "                           experienced by an Idle load running on a separate jvm"
 		echo "                           in log files <logname>.c and <logname>.c.hgrm"
