@@ -135,11 +135,11 @@ public class HiccupMeter extends Thread {
 
     final String versionString = "jHiccup version 1.3.8";
 
-    final PrintStream log;
+    public final PrintStream log;
 
-    final HiccupMeterConfiguration config;
+    public final HiccupMeterConfiguration config;
 
-    static class HiccupMeterConfiguration {
+    protected static class HiccupMeterConfiguration {
         public boolean terminateWithStdInput = false;
         public long resolutionMs = 1;
         public long runTimeMs = 0;
@@ -209,6 +209,8 @@ public class HiccupMeter extends Thread {
                         startDelayMsExplicitlySpecified = true;
                     } else if (args[i].equals("-r")) {
                         resolutionMs = Long.parseLong(args[++i]);
+                    } else if (args[i].equals("-s")) {
+                        numberOfSignificantValueDigits = Integer.parseInt(args[++i]);
                     } else if (args[i].equals("-l")) {
                         logFileName = args[++i];
                         logFileExplicitlySpecified = true;
@@ -236,6 +238,7 @@ public class HiccupMeter extends Thread {
                     agentArgs = "-d " + startDelayMs +
                                 " -i " + reportingIntervalMs +
                                 ((startTimeAtZero) ? " -0" : "") +
+                                " -s " + numberOfSignificantValueDigits +
                                 " -r " + resolutionMs;
 
                     if (logFileExplicitlySpecified) {
@@ -278,6 +281,7 @@ public class HiccupMeter extends Thread {
                                     " -i " + reportingIntervalMs +
                                     " -d " + startDelayMs +
                                     ((startTimeAtZero) ? " -0" : "") +
+                                    " -s " + numberOfSignificantValueDigits +
                                     " -r " + resolutionMs +
                                     " -terminateWithStdInput";
                 }
@@ -315,7 +319,7 @@ public class HiccupMeter extends Thread {
                 " [-j jHiccupJarFileName]     File name for the jHiccup.jar file, and required with [-p] option above\n" +
                 " [-d startDelayMs]           Delay the beginning of hiccup measurement by\n" +
                 "                             startDelayMs milliseconds [default 30000]\n" +
-                " [-0]                        Start timestamps at 0 (as opposed to at JVM runtime at start point)" +
+                " [-0]                        Start timestamps at 0 (as opposed to at JVM runtime at start point)\n" +
                 " [-i reportingIntervalMs]    Set reporting interval [default 50000]\n" +
                 " [-r resolutionMs]           Set sampling resolution in milliseconds [default 1]\n" +
                 " [-t runTimeMs]              Limit measurement time [default 0, for infinite]\n" +
@@ -324,7 +328,8 @@ public class HiccupMeter extends Thread {
                 "                             processes that wish to terminate when their launching\n" +
                 "                             parent does).\n" +
                 " [-f inputFileName]          Read timestamp and latency data from input file\n" +
-                "                             instead of sampling it directly\n");
+                "                             instead of sampling it directly\n" +
+                " [-s numberOfSignificantValueDigits]\n");
             }
         }
     }
@@ -403,17 +408,17 @@ public class HiccupMeter extends Thread {
         }
     }
 
-    class HiccupRecorder extends Thread {
-        Histogram histogram;
-        volatile Histogram newHistogram;
-        volatile Histogram oldHistogram;
-        volatile boolean doRun;
+    public class HiccupRecorder extends Thread {
+        public Histogram histogram;
+        public volatile Histogram newHistogram;
+        public volatile Histogram oldHistogram;
+        public volatile boolean doRun;
         final boolean allocateObjects;
         public volatile Long lastSleepTimeObj; // public volatile to make sure allocs are not optimized away...
-        private Semaphore histogramReplacedSemaphore = new Semaphore(0);
+        public Semaphore histogramReplacedSemaphore = new Semaphore(0);
 
 
-        HiccupRecorder(final Histogram histogram, final boolean allocateObjects) {
+        public HiccupRecorder(final Histogram histogram, final boolean allocateObjects) {
             this.setDaemon(true);
             this.setName("HiccupRecorder");
             this.histogram = histogram;
@@ -594,6 +599,11 @@ public class HiccupMeter extends Thread {
         }
     }
 
+    public HiccupRecorder createHiccupRecorder(Histogram initialHistogram) {
+        System.out.println("Making HiccupRecorder:");
+        return new HiccupRecorder(initialHistogram, config.allocateObjects);
+    }
+
     @Override
     public void run() {
         final Histogram accumulatedHistogram =
@@ -618,7 +628,7 @@ public class HiccupMeter extends Thread {
         if (config.inputFileName == null) {
             // Normal operating mode.
             // Launch a hiccup recorder, a process termination monitor, and an optional control process:
-            hiccupRecorder = new HiccupRecorder(initialHistogram, config.allocateObjects);
+            hiccupRecorder = this.createHiccupRecorder(initialHistogram);
             if (config.terminateWithStdInput) {
                 new TerminateWithStdInputReader();
             }
@@ -688,20 +698,20 @@ public class HiccupMeter extends Thread {
                         final HistogramData latestHistogramData = latestHistogram.getHistogramData();
                         final HistogramData accumulatedHistogramData = accumulatedHistogram.getHistogramData();
                         log.format(Locale.US, logFormat,
-                                (now - reportingStartTime)/1000.0,
+                                (now - reportingStartTime)/config.outputValueUnitRatio,
                                 // values recorded during the last reporting interval
                                 latestHistogramData.getTotalCount(),
-                                latestHistogramData.getValueAtPercentile(50.0)/1000.0,
-                                latestHistogramData.getValueAtPercentile(90.0)/1000.0,
-                                latestHistogramData.getMaxValue()/1000.0,
+                                latestHistogramData.getValueAtPercentile(50.0)/config.outputValueUnitRatio,
+                                latestHistogramData.getValueAtPercentile(90.0)/config.outputValueUnitRatio,
+                                latestHistogramData.getMaxValue()/config.outputValueUnitRatio,
                                 // values recorded from the beginning until now
                                 accumulatedHistogramData.getTotalCount(),
-                                accumulatedHistogramData.getValueAtPercentile(50.0)/1000.0,
-                                accumulatedHistogramData.getValueAtPercentile(90.0)/1000.0,
-                                accumulatedHistogramData.getValueAtPercentile(99.0)/1000.0,
-                                accumulatedHistogramData.getValueAtPercentile(99.9)/1000.0,
-                                accumulatedHistogramData.getValueAtPercentile(99.99)/1000.0,
-                                accumulatedHistogramData.getMaxValue()/1000.0
+                                accumulatedHistogramData.getValueAtPercentile(50.0)/config.outputValueUnitRatio,
+                                accumulatedHistogramData.getValueAtPercentile(90.0)/config.outputValueUnitRatio,
+                                accumulatedHistogramData.getValueAtPercentile(99.0)/config.outputValueUnitRatio,
+                                accumulatedHistogramData.getValueAtPercentile(99.9)/config.outputValueUnitRatio,
+                                accumulatedHistogramData.getValueAtPercentile(99.99)/config.outputValueUnitRatio,
+                                accumulatedHistogramData.getMaxValue()/config.outputValueUnitRatio
                         );
 
                         // Output histogram file:
