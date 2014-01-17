@@ -600,7 +600,6 @@ public class HiccupMeter extends Thread {
     }
 
     public HiccupRecorder createHiccupRecorder(Histogram initialHistogram) {
-        System.out.println("Making HiccupRecorder:");
         return new HiccupRecorder(initialHistogram, config.allocateObjects);
     }
 
