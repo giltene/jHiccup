@@ -106,8 +106,7 @@
                     <finalName>jHiccup</finalName>
                     <archive>
                         <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
+                            <addClasspath>false</addClasspath>
                             <mainClass>org.jhiccup.HiccupMeter</mainClass>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
@@ -125,6 +124,30 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.0-beta-9</version>
             </plugin>
+            
+            <plugin>
+              <groupId>org.sonatype.plugins</groupId>
+              <artifactId>jarjar-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <phase>package</phase>
+                  <goals>
+                    <goal>jarjar</goal>
+                  </goals>
+                  <configuration>
+                    <includes>
+                      <include>org.hdrhistogram:HdrHistogram</include>
+                    </includes>
+                    <rules>
+                      <rule>
+                        <pattern>org.HdrHistogram.**</pattern>
+                        <result>org.jhiccup.internal.hdrhistogram.@1</result>
+                      </rule>
+                    </rules>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>            
 
         </plugins>
     </build>
