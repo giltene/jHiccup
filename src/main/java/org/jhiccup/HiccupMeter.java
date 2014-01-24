@@ -133,7 +133,7 @@ import java.util.concurrent.Semaphore;
 
 public class HiccupMeter extends Thread {
 
-    final String versionString = "jHiccup version 1.3.8";
+    final String versionString = "jHiccup version " + Version.version;
 
     public final PrintStream log;
 
@@ -364,25 +364,27 @@ public class HiccupMeter extends Thread {
         this.setDaemon(true);
     }
 
-    class ControlProcess extends Thread {
-        final String controlProcessCommand;
+    class ExecProcess extends Thread {
+        final String processName;
+        final String command;
 
-        ControlProcess(final String command) {
+        ExecProcess(final String command, final String processName) {
             this.setDaemon(true);
-            this.setName("ControlProcessExecThread");
-            controlProcessCommand = command;
+            this.setName(processName + "ExecThread");
+            this.command = command;
+            this.processName = processName;
             this.start();
         }
 
         public void run() {
             try {
                 if (config.verbose) {
-                    log.println("# Executing Control Process command: " + controlProcessCommand);
+                    log.println("# Executing " + processName + " command: " + command);
                 }
-                final Process p = Runtime.getRuntime().exec(controlProcessCommand);
+                final Process p = Runtime.getRuntime().exec(command);
                 p.waitFor();
             } catch (Exception e) {
-                System.err.println("HiccupMeter: Control process terminated.");
+                System.err.println("HiccupMeter: " + processName + " terminated.");
             }
         }
     }
@@ -632,7 +634,7 @@ public class HiccupMeter extends Thread {
                 new TerminateWithStdInputReader();
             }
             if (config.controlProcessCommand != null) {
-                new ControlProcess(config.controlProcessCommand);
+                new ExecProcess(config.controlProcessCommand, "ControlProcess");
             }
         } else {
             // Take input from file instead of sampling it ourselves.
