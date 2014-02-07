@@ -25,7 +25,8 @@ import java.io.*;
 public class HiccupMeterAttacher {
 
     public static void main(final String[] args)  {
-        HiccupMeter.HiccupMeterConfiguration config = new HiccupMeter.HiccupMeterConfiguration(args);
+        HiccupMeter.HiccupMeterConfiguration config =
+                new HiccupMeter.HiccupMeterConfiguration(args, HiccupMeter.defaultHiccupLogFileName);
 
         if (config.error) {
             System.exit(1);

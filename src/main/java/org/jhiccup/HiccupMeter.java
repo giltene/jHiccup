@@ -7,6 +7,7 @@
 
 package org.jhiccup;
 
+import com.sun.swing.internal.plaf.basic.resources.basic_es;
 import org.HdrHistogram.*;
 
 import java.io.*;
@@ -135,6 +136,8 @@ public class HiccupMeter extends Thread {
 
     final String versionString = "jHiccup version " + Version.version;
 
+    static final String defaultHiccupLogFileName = "hiccup.%date.%pid";
+
     public final PrintStream log;
 
     public final HiccupMeterConfiguration config;
@@ -150,7 +153,8 @@ public class HiccupMeter extends Thread {
 
         public boolean verbose = false;
         public boolean allocateObjects = false;
-        public String logFileName = "hiccup.%date.%pid";
+//        public String logFileName = "hiccup.%date.%pid";
+        public String logFileName;
         public boolean logFileExplicitlySpecified = false;
         public String inputFileName = null;
         public boolean logFormatCsv = false;
@@ -186,7 +190,8 @@ public class HiccupMeter extends Thread {
             return logFileName;
         }
 
-        public HiccupMeterConfiguration(final String[] args) {
+        public HiccupMeterConfiguration(final String[] args, String defaultLogFileName) {
+            logFileName = defaultLogFileName;
             try {
                 for (int i = 0; i < args.length; ++i) {
                     if (args[i].equals("-v")) {
@@ -279,6 +284,7 @@ public class HiccupMeter extends Thread {
                                     " -i " + reportingIntervalMs +
                                     " -d " + startDelayMs +
                                     ((startTimeAtZero) ? " -0" : "") +
+                                    ((logFormatCsv) ? " -o" : "") +
                                     " -s " + numberOfSignificantValueDigits +
                                     " -r " + resolutionMs +
                                     " -terminateWithStdInput";
@@ -355,29 +361,34 @@ public class HiccupMeter extends Thread {
      * </pre>
      */
 
-    public HiccupMeter(final String[] args) throws FileNotFoundException {
+    public HiccupMeter(final String[] args, String defaultLogFileName) throws FileNotFoundException {
         this.setName("HiccupMeter");
-        config = new HiccupMeterConfiguration(args);
+        config = new HiccupMeterConfiguration(args, defaultLogFileName);
         log = new PrintStream(new FileOutputStream(config.logFileName), false);
         this.setDaemon(true);
     }
 
-    class ExecProcess extends Thread {
+    public static class ExecProcess extends Thread {
         final String processName;
         final String command;
+        final boolean verbose;
+        final PrintStream log;
 
-        ExecProcess(final String command, final String processName) {
+        public ExecProcess(final String command, final String processName,
+                           final PrintStream log, final boolean verbose) {
             this.setDaemon(true);
             this.setName(processName + "ExecThread");
             this.command = command;
             this.processName = processName;
+            this.log = log;
+            this.verbose = verbose;
             this.start();
         }
 
         public void run() {
             try {
-                if (config.verbose) {
-                    log.println("# Executing " + processName + " command: " + command);
+                if (verbose) {
+                    log.println("# HiccupMeter Executing " + processName + " command: " + command);
                 }
                 final Process p = Runtime.getRuntime().exec(command);
                 p.waitFor();
@@ -603,6 +614,10 @@ public class HiccupMeter extends Thread {
         return new HiccupRecorder(initialHistogram, config.allocateObjects);
     }
 
+    public String getVersionString() {
+        return versionString;
+    }
+
     @Override
     public void run() {
         final Histogram accumulatedHistogram =
@@ -632,7 +647,7 @@ public class HiccupMeter extends Thread {
                 new TerminateWithStdInputReader();
             }
             if (config.controlProcessCommand != null) {
-                new ExecProcess(config.controlProcessCommand, "ControlProcess");
+                new ExecProcess(config.controlProcessCommand, "ControlProcess", log, config.verbose);
             }
         } else {
             // Take input from file instead of sampling it ourselves.
@@ -642,7 +657,7 @@ public class HiccupMeter extends Thread {
 
         try {
             final long startTime;
-            log.println("#[Logged with " + versionString + "]");
+            log.println("#[Logged with " + getVersionString() + "]");
             if (config.inputFileName == null) {
                 // Normal operating mode:
                 if (config.startDelayMs > 0) {
@@ -747,7 +762,7 @@ public class HiccupMeter extends Thread {
         HiccupMeter hiccupMeter = null;
         Thread.currentThread().setName("HiccupBookkeeper ");
         try {
-            hiccupMeter = new HiccupMeter(args);
+            hiccupMeter = new HiccupMeter(args, defaultHiccupLogFileName);
 
             if (hiccupMeter.config.attachToProcess) {
                 String errorMessage = "Cannot use -p option with HiccupMeter (use HiccupMeterAttacher instead)";
