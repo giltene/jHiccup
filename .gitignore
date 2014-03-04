@@ -8,4 +8,4 @@ jHiccup.iml
 .settings
 release.properties
 pom.xml.releaseBackup
-
+src/main/java/org/jhiccup/Version.java
