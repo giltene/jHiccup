@@ -92,8 +92,7 @@ INSTALLED_PATH=$(readlink_f $0)
 
 # Check if running from unpacked distribution archive by assuming jHiccup.jar
 # in the same directory as this script. If not, try to search in target/ directory
-# (running from the source
-# repository build).
+# (running from the source repository build).
 JHICCUP_JAR_FILE=$INSTALLED_PATH/jHiccup.jar
 if [ ! -f $JHICCUP_JAR_FILE ] ; then
   JHICCUP_JAR_FILE=$INSTALLED_PATH/target/jHiccup.jar
