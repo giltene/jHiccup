@@ -90,7 +90,14 @@ JHICCUP_Version=1.3.8
 function readlink_f () { _=`pwd`; cd `dirname $1` && echo `pwd` && cd $_; }
 INSTALLED_PATH=$(readlink_f $0)
 
-JHICCUP_JAR_FILE=$INSTALLED_PATH/target/jHiccup.jar
+# Check if running from unpacked distribution archive by assuming jHiccup.jar
+# in the same directory as this script. If not, try to search in target/ directory
+# (running from the source repository build).
+JHICCUP_JAR_FILE=$INSTALLED_PATH/jHiccup.jar
+if [ ! -f $JHICCUP_JAR_FILE ] ; then
+  JHICCUP_JAR_FILE=$INSTALLED_PATH/target/jHiccup.jar
+fi
+
 DATE=`date +%y%m%d.%H%M`
 
 #
