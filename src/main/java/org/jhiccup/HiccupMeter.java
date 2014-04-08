@@ -7,16 +7,14 @@
 
 package org.jhiccup;
 
-import com.sun.swing.internal.plaf.basic.resources.basic_es;
 import org.HdrHistogram.*;
 
 import java.io.*;
-import java.util.Date;
+import java.util.*;
 import java.text.SimpleDateFormat;
 import java.lang.management.*;
-import java.util.Locale;
-import java.util.Scanner;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * HiccupMeter is a platform pause measurement tool, it is meant to observe
@@ -134,17 +132,19 @@ import java.util.concurrent.Semaphore;
 
 public class HiccupMeter extends Thread {
 
-    final String versionString = "jHiccup version " + Version.version;
+    private final String versionString = "jHiccup version " + Version.version;
 
-    static final String defaultHiccupLogFileName = "hiccup.%date.%pid";
+    static final String defaultHiccupLogFileName = "hiccup.%date.%pid.hlog";
 
-    public final PrintStream log;
+    protected final PrintStream log;
 
-    public final HiccupMeterConfiguration config;
+    protected final HistogramLogWriter histogramLogWriter;
+
+    protected final HiccupMeterConfiguration config;
 
     protected static class HiccupMeterConfiguration {
         public boolean terminateWithStdInput = false;
-        public long resolutionMs = 1;
+        public double resolutionMs = 1.0;
         public long runTimeMs = 0;
         public long reportingIntervalMs = 5000;
         public long startDelayMs = 30000;
@@ -153,7 +153,6 @@ public class HiccupMeter extends Thread {
 
         public boolean verbose = false;
         public boolean allocateObjects = false;
-//        public String logFileName = "hiccup.%date.%pid";
         public String logFileName;
         public boolean logFileExplicitlySpecified = false;
         public String inputFileName = null;
@@ -170,10 +169,11 @@ public class HiccupMeter extends Thread {
 
         public boolean startTimeAtZero = false;
 
-        public long highestTrackableValue = 3600 * 1000L * 1000L;
+        public long lowestTrackableValue = 1000L * 20L; // default to ~20usec best-case resolution
+        public long highestTrackableValue = 3600 * 1000L * 1000L * 1000L;
         public int numberOfSignificantValueDigits = 2;
         public int histogramDumpTicksPerHalf = 5;
-        public Double outputValueUnitRatio = 1000.0;
+        public Double outputValueUnitRatio = 1000000.0;
 
         public boolean error = false;
         public String errorMessage = "";
@@ -213,7 +213,7 @@ public class HiccupMeter extends Thread {
                         startDelayMs = Long.parseLong(args[++i]);
                         startDelayMsExplicitlySpecified = true;
                     } else if (args[i].equals("-r")) {
-                        resolutionMs = Long.parseLong(args[++i]);
+                        resolutionMs = Double.parseDouble(args[++i]);
                     } else if (args[i].equals("-s")) {
                         numberOfSignificantValueDigits = Integer.parseInt(args[++i]);
                     } else if (args[i].equals("-l")) {
@@ -305,7 +305,7 @@ public class HiccupMeter extends Thread {
                 System.err.println(errorMessage);
 
                 String validArgs =
-                        "\"[-v] [-c] [-o] [-0] [-p pidOfProcessToAttachTo] [-j jHiccupJarFileName] " +
+                        "\"[-v] [-c] [-o] [-0] [-n] [-p pidOfProcessToAttachTo] [-j jHiccupJarFileName] " +
                         "[-i reportingIntervalMs] [-h] [-t runTimeMs] [-d startDelayMs] " +
                         "[-l logFileName] [-r resolutionMs] [-terminateWithStdInput] [-f inputFileName]\"\n";
 
@@ -365,6 +365,7 @@ public class HiccupMeter extends Thread {
         this.setName("HiccupMeter");
         config = new HiccupMeterConfiguration(args, defaultLogFileName);
         log = new PrintStream(new FileOutputStream(config.logFileName), false);
+        histogramLogWriter = new HistogramLogWriter(log);
         this.setDaemon(true);
     }
 
@@ -442,10 +443,10 @@ public class HiccupMeter extends Thread {
         }
 
 
-        public long getCurrentTimeMsec(final long nextReportingTime) throws InterruptedException {
+        public long getCurrentTimeMsecWithDelay(final long nextReportingTime) throws InterruptedException {
             final long now = System.currentTimeMillis();
             if (now < nextReportingTime)
-                Thread.sleep(100);
+                Thread.sleep(nextReportingTime - now);
             return now;
         }
 
@@ -474,25 +475,27 @@ public class HiccupMeter extends Thread {
         }
 
         public void run() {
-            final long resolutionUsec = config.resolutionMs * 1000L;
+            final long resolutionNsec = (long)(config.resolutionMs * 1000L * 1000L);
             try {
+                long shortestObservedDeltaTimeNsec = Long.MAX_VALUE;
                 while (doRun) {
-                    final long measurementStartTime, deltaTimeNs;
+                    final long timeBeforeMeasurement = System.nanoTime();
                     if (config.resolutionMs != 0) {
-                        measurementStartTime = System.nanoTime();
-                        Thread.sleep(config.resolutionMs);
+                        TimeUnit.NANOSECONDS.sleep(resolutionNsec);
                         if (allocateObjects) {
                             // Allocate an object to make sure potential allocation stalls are measured.
-                            lastSleepTimeObj = new Long(measurementStartTime);
+                            lastSleepTimeObj = new Long(timeBeforeMeasurement);
                         }
-                        deltaTimeNs = System.nanoTime() - measurementStartTime;
-                    } else {
-                        measurementStartTime = System.nanoTime();
-                        deltaTimeNs = System.nanoTime() - measurementStartTime;
                     }
-                    long hiccupTimeUsec = (deltaTimeNs/1000) - resolutionUsec;
-                    hiccupTimeUsec = (hiccupTimeUsec < 0) ? 0 : hiccupTimeUsec;
-                    histogram.recordValueWithExpectedInterval(hiccupTimeUsec, resolutionUsec);
+                    final long timeAfterMeasurement = System.nanoTime();
+                    final long deltaTimeNsec = timeAfterMeasurement - timeBeforeMeasurement;
+
+                    if (deltaTimeNsec < shortestObservedDeltaTimeNsec) {
+                        shortestObservedDeltaTimeNsec = deltaTimeNsec;
+                    }
+
+                    long hiccupTimeNsec = deltaTimeNsec - shortestObservedDeltaTimeNsec;
+                    histogram.recordValueWithExpectedInterval(hiccupTimeNsec, resolutionNsec);
 
                     if (newHistogram != null) {
                         // Someone wants to replace the running histogram with a new one.
@@ -534,8 +537,8 @@ public class HiccupMeter extends Thread {
             if (scanner.hasNextLine()) {
                 try {
                     final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
-                    final long hiccupTimeUsec = (long) (scanner.nextDouble() * 1000); // Latency is expected to be in millis
-                    histogram.recordValueWithExpectedInterval(hiccupTimeUsec, config.resolutionMs * 1000);
+                    final long hiccupTimeNsec = (long) (scanner.nextDouble() * 1000000L); // Latency is expected to be in millis
+                    histogram.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
                     return timeMsec;
                 } catch (java.util.NoSuchElementException e) {
                     return -1;
@@ -545,7 +548,7 @@ public class HiccupMeter extends Thread {
         }
 
         @Override
-        public long getCurrentTimeMsec(final long nextReportingTime) throws InterruptedException {
+        public long getCurrentTimeMsecWithDelay(final long nextReportingTime) throws InterruptedException {
             return processInputLine(scanner, histogram);
         }
 
@@ -570,46 +573,6 @@ public class HiccupMeter extends Thread {
         }
     }
 
-    static boolean canDoOverwritingRenames = true; // Assume we can do overwriting renames, will auto-correct if wrong
-
-    void outputHistogramFile(final Histogram histogram, final boolean suppressRunTimeExceptions) {
-        try {
-            if (config.logFileName != null) {
-                final PrintStream histogramLog =
-                        new PrintStream(new FileOutputStream(config.logFileName + ".hgrm.tmp"),false);
-                histogramLog.print("# jHiccup histogram report, " + new Date() + " :\n# --------------------\n");
-                histogram.getHistogramData().outputPercentileDistribution(histogramLog,
-                        config.histogramDumpTicksPerHalf, config.outputValueUnitRatio, config.logFormatCsv);
-                histogramLog.close();
-                final File fromFile = new File(config.logFileName + ".hgrm.tmp");
-                final File toFile = new File(config.logFileName + ".hgrm");
-                if (!canDoOverwritingRenames) // Only delete toFile if platform can't do overwriting renames.
-                    toFile.delete();
-                boolean renameSucceess = fromFile.renameTo(toFile);
-                if (!renameSucceess) {
-                    if (canDoOverwritingRenames) {
-                        toFile.delete();
-                        renameSucceess = fromFile.renameTo(toFile);
-                        if (renameSucceess) {
-                            canDoOverwritingRenames = false; // Figured out that we can't do overwriting renames...
-                        }
-                    }
-                    if (!renameSucceess) {
-                        log.println("Failed to rename histogram file from " + fromFile.getName() +
-                                " to " + toFile.getName());
-                    }
-                }
-            }
-        } catch (FileNotFoundException e) {
-            log.println("Could not open histogram file(s): " + e);
-        } catch (RuntimeException e) {
-            if (!suppressRunTimeExceptions) {
-                log.println("Encountered exception when trying to output histogram file: " + e);
-                throw e;
-            }
-        }
-    }
-
     public HiccupRecorder createHiccupRecorder(Histogram initialHistogram) {
         return new HiccupRecorder(initialHistogram, config.allocateObjects);
     }
@@ -621,23 +584,18 @@ public class HiccupMeter extends Thread {
     @Override
     public void run() {
         final Histogram accumulatedHistogram =
-                new Histogram(config.highestTrackableValue, config.numberOfSignificantValueDigits);
+                new Histogram(config.lowestTrackableValue, config.highestTrackableValue, config.numberOfSignificantValueDigits);
+        final Histogram initialHistogram =
+                new Histogram(config.lowestTrackableValue, config.highestTrackableValue, config.numberOfSignificantValueDigits);
+        Histogram latestHistogram =
+                new Histogram(config.lowestTrackableValue, config.highestTrackableValue, config.numberOfSignificantValueDigits);
+
         HiccupRecorder hiccupRecorder;
 
         final long uptimeAtInitialStartTime = ManagementFactory.getRuntimeMXBean().getUptime();
         long now = System.currentTimeMillis();
         long jvmStartTime = now - uptimeAtInitialStartTime;
         long reportingStartTime = jvmStartTime;
-
-        String logFormat;
-        if (config.logFormatCsv) {
-            logFormat = "%.3f,%d,%.3f,%.3f,%.3f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n";
-        } else {
-            logFormat = "%4.3f: I:%d ( %7.3f %7.3f %7.3f ) T:%d ( %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f )\n";
-        }
-
-        final Histogram initialHistogram =
-                new Histogram(config.highestTrackableValue, config.numberOfSignificantValueDigits);
 
         if (config.inputFileName == null) {
             // Normal operating mode.
@@ -655,9 +613,12 @@ public class HiccupMeter extends Thread {
             hiccupRecorder = new InputRecorder(initialHistogram, config.inputFileName);
         }
 
+        histogramLogWriter.outputComment("[Logged with " + getVersionString() + "]");
+        histogramLogWriter.outputLogFormatVersion();
+
         try {
             final long startTime;
-            log.println("#[Logged with " + getVersionString() + "]");
+
             if (config.inputFileName == null) {
                 // Normal operating mode:
                 if (config.startDelayMs > 0) {
@@ -674,69 +635,35 @@ public class HiccupMeter extends Thread {
                 }
                 hiccupRecorder.start();
                 startTime = System.currentTimeMillis();
-                log.println("#[Sampling start time: " + new Date() + ", (uptime at sampling start: " +
-                        (ManagementFactory.getRuntimeMXBean().getUptime()/1000.0) + " seconds)]");
                 if (config.startTimeAtZero) {
                     reportingStartTime = startTime;
                 }
+                histogramLogWriter.outputStartTime(reportingStartTime);
+
             } else {
                 // Reading from input file, not sampling ourselves...:
                 hiccupRecorder.start();
-                reportingStartTime = startTime = hiccupRecorder.getCurrentTimeMsec(0);
-                log.println("#[Data read from input file \"" + config.inputFileName + "\" at " + new Date() + "]");
+                reportingStartTime = startTime = hiccupRecorder.getCurrentTimeMsecWithDelay(0);
+                histogramLogWriter.outputComment("[Data read from input file \"" + config.inputFileName + "\" at " + new Date() + "]");
             }
 
-            if (config.logFormatCsv) {
-                log.println("\"Time\",\"Int_Count\",\"Int_50%\",\"Int_90%\",\"Int_Max\",\"Total_Count\"," +
-                            "\"Total_50%\",\"Total_90%\",\"Total_99%\",\"Total_99.9%\",\"Total_99.99%\",\"Total_Max\"");
-            } else {
-                log.println("Time: IntervalPercentiles:count ( 50% 90% Max ) TotalPercentiles:count ( 50% 90% 99% 99.9% 99.99% Max )");
-            }
+            histogramLogWriter.outputLegend();
 
             long nextReportingTime = startTime + config.reportingIntervalMs;
 
-            Histogram latestHistogram =
-                    new Histogram(config.highestTrackableValue, config.numberOfSignificantValueDigits);
-
             while ((now > 0) && ((config.runTimeMs == 0) || (config.runTimeMs > now - startTime))) {
-                now = hiccupRecorder.getCurrentTimeMsec(nextReportingTime); // could return -1 to indicate termination
+                now = hiccupRecorder.getCurrentTimeMsecWithDelay(nextReportingTime); // could return -1 to indicate termination
                 if (now > nextReportingTime) {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
-                    latestHistogram.reset();
                     latestHistogram = hiccupRecorder.swapHistogram(latestHistogram);
                     accumulatedHistogram.add(latestHistogram);
                     while (now > nextReportingTime) {
                         nextReportingTime += config.reportingIntervalMs;
                     }
                     if (latestHistogram.getHistogramData().getTotalCount() > 0) {
-                        final HistogramData latestHistogramData = latestHistogram.getHistogramData();
-                        final HistogramData accumulatedHistogramData = accumulatedHistogram.getHistogramData();
-                        log.format(Locale.US, logFormat,
-                                (now - reportingStartTime)/config.outputValueUnitRatio,
-                                // values recorded during the last reporting interval
-                                latestHistogramData.getTotalCount(),
-                                latestHistogramData.getValueAtPercentile(50.0)/config.outputValueUnitRatio,
-                                latestHistogramData.getValueAtPercentile(90.0)/config.outputValueUnitRatio,
-                                latestHistogramData.getMaxValue()/config.outputValueUnitRatio,
-                                // values recorded from the beginning until now
-                                accumulatedHistogramData.getTotalCount(),
-                                accumulatedHistogramData.getValueAtPercentile(50.0)/config.outputValueUnitRatio,
-                                accumulatedHistogramData.getValueAtPercentile(90.0)/config.outputValueUnitRatio,
-                                accumulatedHistogramData.getValueAtPercentile(99.0)/config.outputValueUnitRatio,
-                                accumulatedHistogramData.getValueAtPercentile(99.9)/config.outputValueUnitRatio,
-                                accumulatedHistogramData.getValueAtPercentile(99.99)/config.outputValueUnitRatio,
-                                accumulatedHistogramData.getMaxValue()/config.outputValueUnitRatio
-                        );
-
-                        // Output histogram file:
-                        // Note: Some platforms (e.g. Websphere) turn on temporary security managers at start
-                        // time, which may prevent new histogram file output. We suppress exceptions for
-                        // the first timeDelayMsBeforeThrowingHistogramFileExceptions msecs to allow
-                        // recording to continue if failure is only temporary:
-
-                        outputHistogramFile(accumulatedHistogram,
-                                ((now - startTime) < config.timeDelayMsBeforeThrowingHistogramFileExceptions));
+                        histogramLogWriter.outputIntervalHistogram((now - reportingStartTime)/1000.0, latestHistogram);
                     }
+                    latestHistogram.reset();
                 }
             }
         } catch (InterruptedException e) {
@@ -753,9 +680,6 @@ public class HiccupMeter extends Thread {
                 log.println("# HiccupMeter terminate/join interrupted");
             }
         }
-
-        accumulatedHistogram.add(hiccupRecorder.getHistogram());
-        outputHistogramFile(accumulatedHistogram, false);
     }
 
     public static HiccupMeter commonMain(final String[] args, boolean exitOnError) {

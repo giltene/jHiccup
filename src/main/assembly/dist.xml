@@ -20,7 +20,8 @@
       <directory>${project.basedir}</directory>
       <outputDirectory>/</outputDirectory>
       <includes>
-        <include>jHiccup</include>
+          <include>jHiccup</include>
+          <include>jHiccupLogProcessor</include>
       </includes>
       <fileMode>0744</fileMode>
     </fileSet>
