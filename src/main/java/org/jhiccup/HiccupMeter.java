@@ -149,7 +149,6 @@ public class HiccupMeter extends Thread {
         public long reportingIntervalMs = 5000;
         public long startDelayMs = 30000;
         public boolean startDelayMsExplicitlySpecified = false;
-        public long timeDelayMsBeforeThrowingHistogramFileExceptions = 60000;
 
         public boolean verbose = false;
         public boolean allocateObjects = false;
@@ -172,8 +171,6 @@ public class HiccupMeter extends Thread {
         public long lowestTrackableValue = 1000L * 20L; // default to ~20usec best-case resolution
         public long highestTrackableValue = 3600 * 1000L * 1000L * 1000L;
         public int numberOfSignificantValueDigits = 2;
-        public int histogramDumpTicksPerHalf = 5;
-        public Double outputValueUnitRatio = 1000000.0;
 
         public boolean error = false;
         public String errorMessage = "";
