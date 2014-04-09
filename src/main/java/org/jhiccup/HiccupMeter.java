@@ -132,7 +132,7 @@ import java.util.concurrent.TimeUnit;
 
 public class HiccupMeter extends Thread {
 
-    private final String versionString = "jHiccup version " + Version.version;
+    private static final String versionString = "jHiccup version " + Version.version;
 
     static final String defaultHiccupLogFileName = "hiccup.%date.%pid.hlog";
 
@@ -334,29 +334,6 @@ public class HiccupMeter extends Thread {
             }
         }
     }
-
-    /**
-     * Argument usage:
-     * <pre>
-     *    [-h]                           help
-     *    [-v]                           verbose
-     *    [-l logFileName]               Log hiccup information into <i>logFileName</i> and
-     *                                   <i>logFileName.hgrm</i>
-     *    [-o]                           Output log as CSV (Note only hiccup statistics will be formatted)
-     *    [-c controlProcessLogFileName] Launch a control process in a separate JVM
-     *                                   logging hiccup data into <i>controlProcessLogFileName</i>
-     *                                   and <i>controlProcessLogFileName.hgrm</i>
-     *    [-d startDelayMs]              Delay the beginning of hiccup measurement by
-     *                                   <i>startDelayMs</i> milliseconds [default 30000]
-     *    [-i reportingIntervalMs]       Set reporting interval [default 50000]
-     *    [-r resolutionMs]              Set sampling resolution in milliseconds [default 1]
-     *    [-t runTimeMs]                 Limit measurement time [default 0, for infinite]
-     *    [-terminateWithStdInput]       Take over standard input, and terminate process when
-     *                                   standard input is severed (useful for control
-     *                                   processes that wish to terminate when their launching
-     *                                   parent does).
-     * </pre>
-     */
 
     public HiccupMeter(final String[] args, String defaultLogFileName) throws FileNotFoundException {
         this.setName("HiccupMeter");
