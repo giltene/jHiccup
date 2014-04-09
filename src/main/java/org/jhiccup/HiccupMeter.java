@@ -654,12 +654,15 @@ public class HiccupMeter extends Thread {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
                     latestHistogram = hiccupRecorder.swapHistogram(latestHistogram);
                     accumulatedHistogram.add(latestHistogram);
+
                     while (now > nextReportingTime) {
                         nextReportingTime += config.reportingIntervalMs;
                     }
+
                     if (latestHistogram.getHistogramData().getTotalCount() > 0) {
                         histogramLogWriter.outputIntervalHistogram((now - reportingStartTime)/1000.0, latestHistogram);
                     }
+
                     latestHistogram.reset();
                 }
             }
