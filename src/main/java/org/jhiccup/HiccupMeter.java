@@ -612,12 +612,16 @@ public class HiccupMeter extends Thread {
                 if (config.startTimeAtZero) {
                     reportingStartTime = startTime;
                 }
+                initialHistogram.setStartTimeStamp(now - reportingStartTime);
+
                 histogramLogWriter.outputStartTime(reportingStartTime);
 
             } else {
                 // Reading from input file, not sampling ourselves...:
                 hiccupRecorder.start();
                 reportingStartTime = startTime = hiccupRecorder.getCurrentTimeMsecWithDelay(0);
+                initialHistogram.setStartTimeStamp(now - reportingStartTime);
+
                 histogramLogWriter.outputComment("[Data read from input file \"" + config.inputFileName + "\" at " + new Date() + "]");
             }
 
@@ -629,7 +633,9 @@ public class HiccupMeter extends Thread {
                 now = hiccupRecorder.getCurrentTimeMsecWithDelay(nextReportingTime); // could return -1 to indicate termination
                 if (now > nextReportingTime) {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
+                    latestHistogram.setStartTimeStamp(now - reportingStartTime);
                     latestHistogram = hiccupRecorder.swapHistogram(latestHistogram);
+                    latestHistogram.setEndTimeStamp(now - reportingStartTime);
                     accumulatedHistogram.add(latestHistogram);
 
                     while (now > nextReportingTime) {
@@ -637,7 +643,7 @@ public class HiccupMeter extends Thread {
                     }
 
                     if (latestHistogram.getHistogramData().getTotalCount() > 0) {
-                        histogramLogWriter.outputIntervalHistogram((now - reportingStartTime)/1000.0, latestHistogram);
+                        histogramLogWriter.outputIntervalHistogram(latestHistogram);
                     }
 
                     latestHistogram.reset();

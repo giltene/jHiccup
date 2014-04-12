@@ -188,7 +188,7 @@ public class HistogramLogProcessor extends Thread {
                     }
                 }
                 timeIntervalLog.format(Locale.US, logFormat,
-                        (intervalHistogram.getTimeStamp() - logReader.getStartTimeSec()),
+                        ((intervalHistogram.getEndTimeStamp()/1000.0) - logReader.getStartTimeSec()),
                         // values recorded during the last reporting interval
                         intervalHistogramData.getTotalCount(),
                         intervalHistogramData.getValueAtPercentile(50.0) / config.outputValueUnitRatio,
