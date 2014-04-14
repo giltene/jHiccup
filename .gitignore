@@ -3,6 +3,7 @@ target
 out
 gh-pages
 jHiccup.iml
+jHiccup.jar
 .classpath
 .project
 .settings
