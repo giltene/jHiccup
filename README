@@ -151,10 +151,14 @@ for 30 seconds and exits:
 Hiccup Charts: Plotting jHiccup results
 
 A jHiccupPlotter.xls Excel spreadsheet is included to conveniently
-plot jHiccup log files in "Hiccup Chart" form. To use the spreadsheet,
-load it into Excel, (make sure to enable macros), and follow the 2-step
-instructions in main menu worksheet to automatically import the log files
-and produce the Hiccup Chart.
+plot jHiccup log files produced by jHiccupLogProcessor in "Hiccup Chart"form.
+To use the spreadsheet, load it into Excel, (make sure to enable macros),
+and follow the 2-step instructions in the main menu worksheet to automatically
+import the log files and produce the Hiccup Chart.
+
+Note that jHiccupPlotter.xls reads the log files produced by jHiccupLogProcessor,
+(the interval log and the .hgrm histogram percentile distribution log), and
+not the .hlog log format that jHiccup outputs directly.
 
 ----------------------------------------------------------------------------
 Supported/Tested platforms:
