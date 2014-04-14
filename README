@@ -65,7 +65,7 @@ Note 2: I find that a common way people add jHiccup as a java agent is by using
 the _JAVA_OPTIONS environment variable. This often allows one to add the jHiccup
  java agent without significant launch script surgery. For example:
 
-export _JAVA_OPTIONS='-javaagent:/path/to/jHiccup/bin/jHiccup.jar="-d 20000 -i 1000"'
+export _JAVA_OPTIONS='-javaagent:/path/to/jHiccup/target/jHiccup.jar="-d 20000 -i 1000"'
 
 ----------------------------------------------------------------------------
 Reading and processing the jHiccup log with jHiccupLogProcessor:
