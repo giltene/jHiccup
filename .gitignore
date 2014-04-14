@@ -7,6 +7,5 @@ jHiccup.iml
 .project
 .settings
 release.properties
-release-pom.xml
 pom.xml.releaseBackup
 src/main/java/org/jhiccup/Version.java
