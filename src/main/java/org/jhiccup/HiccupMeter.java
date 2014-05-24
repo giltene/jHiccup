@@ -642,7 +642,7 @@ public class HiccupMeter extends Thread {
                         nextReportingTime += config.reportingIntervalMs;
                     }
 
-                    if (latestHistogram.getHistogramData().getTotalCount() > 0) {
+                    if (latestHistogram.getTotalCount() > 0) {
                         histogramLogWriter.outputIntervalHistogram(latestHistogram);
                     }
 

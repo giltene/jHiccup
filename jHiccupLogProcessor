@@ -82,5 +82,5 @@ if [ $? -eq 0 ] ; then
 	echo Windows path for hiccup jar file is $JHICCUP_JAR_FILE
 fi
 
-exec $JAVA_CMD -cp $JHICCUP_JAR_FILE org.jhiccup.HistogramLogProcessor $@
+exec $JAVA_CMD -cp $JHICCUP_JAR_FILE org.jhiccup.internal.hdrhistogram.HistogramLogProcessor $@
 #exec $CMD
