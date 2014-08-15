@@ -160,6 +160,8 @@ public class HiccupMeter extends Thread {
         public boolean launchControlProcess = false;
         public String controlProcessLogFileName = null;
         public String controlProcessCommand = null;
+        public boolean controlProcessJvmArgsExplicitlySpecified = false;
+        public String controlProcessJvmArgs;
 
         public boolean attachToProcess = false;
         public String pidOfProcessToAttachTo = null;
@@ -220,6 +222,9 @@ public class HiccupMeter extends Thread {
                         inputFileName = args[++i];
                     } else if (args[i].equals("-c")) {
                         launchControlProcess = true;
+                    } else if (args[i].equals("-x")) {
+                        controlProcessJvmArgs = args[++i];
+                        controlProcessJvmArgsExplicitlySpecified = true;
                     } else if (args[i].equals("-o")) {
                         logFormatCsv = true;
                     } else {
@@ -251,6 +256,10 @@ public class HiccupMeter extends Thread {
                         agentArgs += " -c";
                     }
 
+                    if (controlProcessJvmArgsExplicitlySpecified) {
+                        agentArgs += " -x " + controlProcessJvmArgs;
+                    }
+
                     if (verbose) {
                         agentArgs += " -v";
                     }
@@ -274,6 +283,7 @@ public class HiccupMeter extends Thread {
                     controlProcessCommand =
                             System.getProperty("java.home") +
                                     File.separator + "bin" + File.separator + "java" +
+                                    (controlProcessJvmArgsExplicitlySpecified ? " " + controlProcessJvmArgs : "") +
                                     " -cp " + System.getProperty("java.class.path") +
                                     " -Dorg.jhiccup.avoidRecursion=true" +
                                     " " + HiccupMeter.class.getCanonicalName() +
@@ -302,7 +312,7 @@ public class HiccupMeter extends Thread {
                 System.err.println(errorMessage);
 
                 String validArgs =
-                        "\"[-v] [-c] [-o] [-0] [-n] [-p pidOfProcessToAttachTo] [-j jHiccupJarFileName] " +
+                        "\"[-v] [-c] [-x controlProcessArgs] [-o] [-0] [-n] [-p pidOfProcessToAttachTo] [-j jHiccupJarFileName] " +
                         "[-i reportingIntervalMs] [-h] [-t runTimeMs] [-d startDelayMs] " +
                         "[-l logFileName] [-r resolutionMs] [-terminateWithStdInput] [-f inputFileName]\"\n";
 
@@ -316,6 +326,7 @@ public class HiccupMeter extends Thread {
                 " [-o]                        Output log files in CSV format\n" +
                 " [-c]                        Launch a control process in a separate JVM\n" +
                 "                             logging hiccup data into logFileName.c and logFileName.c.hgrm\n" +
+                " [-x controlProcessArgs]     Pass additional args to the control process JVM\n" +
                 " [-p pidOfProcessToAttachTo] Attach to the process with given pid and inject jHiccup as an agent\n" +
                 " [-j jHiccupJarFileName]     File name for the jHiccup.jar file, and required with [-p] option above\n" +
                 " [-d startDelayMs]           Delay the beginning of hiccup measurement by\n" +
