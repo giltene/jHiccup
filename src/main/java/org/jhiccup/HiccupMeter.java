@@ -406,19 +406,15 @@ public class HiccupMeter extends Thread {
     }
 
     public class HiccupRecorder extends Thread {
-        public Histogram histogram;
-        public volatile Histogram newHistogram;
-        public volatile Histogram oldHistogram;
         public volatile boolean doRun;
-        final boolean allocateObjects;
+        private final boolean allocateObjects;
         public volatile Long lastSleepTimeObj; // public volatile to make sure allocs are not optimized away...
-        public Semaphore histogramReplacedSemaphore = new Semaphore(0);
+        protected final IntervalHistogramRecorder recorder;
 
-
-        public HiccupRecorder(final Histogram histogram, final boolean allocateObjects) {
+        public HiccupRecorder(final IntervalHistogramRecorder recorder, final boolean allocateObjects) {
             this.setDaemon(true);
             this.setName("HiccupRecorder");
-            this.histogram = histogram;
+            this.recorder = recorder;
             this.allocateObjects = allocateObjects;
             doRun = true;
         }
@@ -433,30 +429,6 @@ public class HiccupMeter extends Thread {
             if (now < nextReportingTime)
                 Thread.sleep(nextReportingTime - now);
             return now;
-        }
-
-        public synchronized Histogram swapHistogram(final Histogram replacementHistogram) {
-            // Ask the running thread to replace the running histogram and
-            // hand us the current one in oldHistogram:
-
-            // We only want to return the current histogram when we know it will
-            // no longer have results logged into it by the logging/sampling thread.
-            // We use a counting semaphore for signaling here, to avoid potential
-            // blocking in the sampling thread.
-
-            // Indicate that we want to swap histogram:
-            newHistogram = replacementHistogram;
-
-            // Wait for an indication that the histogram as replaced:
-            histogramReplacedSemaphore.acquireUninterruptibly();
-
-            final Histogram returnedHistogram = oldHistogram;
-            oldHistogram = null;
-            return returnedHistogram;
-        }
-
-        public Histogram getHistogram() {
-            return histogram;
         }
 
         public void run() {
@@ -480,19 +452,8 @@ public class HiccupMeter extends Thread {
                     }
 
                     long hiccupTimeNsec = deltaTimeNsec - shortestObservedDeltaTimeNsec;
-                    histogram.recordValueWithExpectedInterval(hiccupTimeNsec, resolutionNsec);
 
-                    if (newHistogram != null) {
-                        // Someone wants to replace the running histogram with a new one.
-                        // Do wait-free swapping. The recording loop stays wait-free, while the other side polls:
-                        final Histogram tempHistogram = histogram;
-                        histogram = newHistogram;
-                        newHistogram = null;
-                        // The requesting thread will observe oldHistogram through polling:
-                        oldHistogram = tempHistogram;
-                        // Signal that histogram was replaced:
-                        histogramReplacedSemaphore.release();
-                    }
+                    recorder.recordValueWithExpectedInterval(hiccupTimeNsec, resolutionNsec);
                 }
             } catch (InterruptedException e) {
                 if (config.verbose) {
@@ -505,8 +466,8 @@ public class HiccupMeter extends Thread {
     class InputRecorder extends HiccupRecorder {
         final Scanner scanner;
 
-        InputRecorder(final Histogram histogram, final String inputFileName) {
-            super(histogram, false);
+        InputRecorder(final IntervalHistogramRecorder recorder, final String inputFileName) {
+            super(recorder, false);
             Scanner newScanner = null;
             try {
                 newScanner = new Scanner(new File(inputFileName));
@@ -518,12 +479,12 @@ public class HiccupMeter extends Thread {
             }
         }
 
-        long processInputLine(final Scanner scanner, final Histogram histogram) {
+        long processInputLine(final Scanner scanner, final IntervalHistogramRecorder recorder) {
             if (scanner.hasNextLine()) {
                 try {
                     final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
                     final long hiccupTimeNsec = (long) (scanner.nextDouble() * 1000000L); // Latency is expected to be in millis
-                    histogram.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
+                    recorder.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
                     return timeMsec;
                 } catch (java.util.NoSuchElementException e) {
                     return -1;
@@ -534,14 +495,7 @@ public class HiccupMeter extends Thread {
 
         @Override
         public long getCurrentTimeMsecWithDelay(final long nextReportingTime) throws InterruptedException {
-            return processInputLine(scanner, histogram);
-        }
-
-        @Override
-        public Histogram swapHistogram(final Histogram replacementHistogram) {
-            final Histogram tmpHistogram  = histogram;
-            histogram = replacementHistogram;
-            return tmpHistogram;
+            return processInputLine(scanner, recorder);
         }
 
         @Override
@@ -558,8 +512,8 @@ public class HiccupMeter extends Thread {
         }
     }
 
-    public HiccupRecorder createHiccupRecorder(Histogram initialHistogram) {
-        return new HiccupRecorder(initialHistogram, config.allocateObjects);
+    public HiccupRecorder createHiccupRecorder(IntervalHistogramRecorder recorder) {
+        return new HiccupRecorder(recorder, config.allocateObjects);
     }
 
     public String getVersionString() {
@@ -568,12 +522,19 @@ public class HiccupMeter extends Thread {
 
     @Override
     public void run() {
-        final Histogram accumulatedHistogram =
-                new Histogram(config.lowestTrackableValue, config.highestTrackableValue, config.numberOfSignificantValueDigits);
-        final Histogram initialHistogram =
-                new Histogram(config.lowestTrackableValue, config.highestTrackableValue, config.numberOfSignificantValueDigits);
-        Histogram latestHistogram =
-                new Histogram(config.lowestTrackableValue, config.highestTrackableValue, config.numberOfSignificantValueDigits);
+        final IntervalHistogramRecorder recorder =
+                new IntervalHistogramRecorder(
+                        config.lowestTrackableValue,
+                        config.highestTrackableValue,
+                        config.numberOfSignificantValueDigits
+                );
+
+        Histogram intervalHistogram =
+                new Histogram(
+                        config.lowestTrackableValue,
+                        config.highestTrackableValue,
+                        config.numberOfSignificantValueDigits
+                );
 
         HiccupRecorder hiccupRecorder;
 
@@ -585,7 +546,7 @@ public class HiccupMeter extends Thread {
         if (config.inputFileName == null) {
             // Normal operating mode.
             // Launch a hiccup recorder, a process termination monitor, and an optional control process:
-            hiccupRecorder = this.createHiccupRecorder(initialHistogram);
+            hiccupRecorder = this.createHiccupRecorder(recorder);
             if (config.terminateWithStdInput) {
                 new TerminateWithStdInputReader();
             }
@@ -595,7 +556,7 @@ public class HiccupMeter extends Thread {
         } else {
             // Take input from file instead of sampling it ourselves.
             // Launch an input hiccup recorder, but no termination monitoring or control process:
-            hiccupRecorder = new InputRecorder(initialHistogram, config.inputFileName);
+            hiccupRecorder = new InputRecorder(recorder, config.inputFileName);
         }
 
         histogramLogWriter.outputComment("[Logged with " + getVersionString() + "]");
@@ -615,15 +576,14 @@ public class HiccupMeter extends Thread {
                     hiccupRecorder.terminate();
                     hiccupRecorder.join();
 
-                    initialHistogram.reset();
-                    hiccupRecorder = new HiccupRecorder(initialHistogram, config.allocateObjects);
+                    recorder.reset();
+                    hiccupRecorder = new HiccupRecorder(recorder, config.allocateObjects);
                 }
                 hiccupRecorder.start();
                 startTime = System.currentTimeMillis();
                 if (config.startTimeAtZero) {
                     reportingStartTime = startTime;
                 }
-                initialHistogram.setStartTimeStamp(now - reportingStartTime);
 
                 histogramLogWriter.outputStartTime(reportingStartTime);
 
@@ -631,7 +591,6 @@ public class HiccupMeter extends Thread {
                 // Reading from input file, not sampling ourselves...:
                 hiccupRecorder.start();
                 reportingStartTime = startTime = hiccupRecorder.getCurrentTimeMsecWithDelay(0);
-                initialHistogram.setStartTimeStamp(now - reportingStartTime);
 
                 histogramLogWriter.outputComment("[Data read from input file \"" + config.inputFileName + "\" at " + new Date() + "]");
             }
@@ -644,20 +603,20 @@ public class HiccupMeter extends Thread {
                 now = hiccupRecorder.getCurrentTimeMsecWithDelay(nextReportingTime); // could return -1 to indicate termination
                 if (now > nextReportingTime) {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
-                    latestHistogram.setStartTimeStamp(now - reportingStartTime);
-                    latestHistogram = hiccupRecorder.swapHistogram(latestHistogram);
-                    latestHistogram.setEndTimeStamp(now - reportingStartTime);
-                    accumulatedHistogram.add(latestHistogram);
+                    recorder.getIntervalHistogramInto(intervalHistogram);
+                    // Adjust start and end time stamps to be relative to reportingStartTime:
+                    intervalHistogram.setStartTimeStamp(
+                            intervalHistogram.getStartTimeStamp() - reportingStartTime);
+                    intervalHistogram.setEndTimeStamp(
+                            intervalHistogram.getEndTimeStamp() - reportingStartTime);
 
                     while (now > nextReportingTime) {
                         nextReportingTime += config.reportingIntervalMs;
                     }
 
-                    if (latestHistogram.getTotalCount() > 0) {
-                        histogramLogWriter.outputIntervalHistogram(latestHistogram);
+                    if (intervalHistogram.getTotalCount() > 0) {
+                        histogramLogWriter.outputIntervalHistogram(intervalHistogram);
                     }
-
-                    latestHistogram.reset();
                 }
             }
         } catch (InterruptedException e) {
