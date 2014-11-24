@@ -2,7 +2,7 @@ jHiccup:
 # Written by Gil Tene of Azul Systems, and released to the public domain,
 # as explained at http://creativecommons.org/publicdomain/zero/1.0/
 #
-# Version: 2.0.3
+# Version: 2.0.4
 ----------------------------------------------------------------------------
 
 jHiccup is a non-intrusive instrumentation tool that logs and records
