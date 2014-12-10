@@ -409,9 +409,9 @@ public class HiccupMeter extends Thread {
         public volatile boolean doRun;
         private final boolean allocateObjects;
         public volatile Long lastSleepTimeObj; // public volatile to make sure allocs are not optimized away...
-        protected final IntervalHistogramRecorder recorder;
+        protected final SingleWriterRecorder recorder;
 
-        public HiccupRecorder(final IntervalHistogramRecorder recorder, final boolean allocateObjects) {
+        public HiccupRecorder(final SingleWriterRecorder recorder, final boolean allocateObjects) {
             this.setDaemon(true);
             this.setName("HiccupRecorder");
             this.recorder = recorder;
@@ -466,7 +466,7 @@ public class HiccupMeter extends Thread {
     class InputRecorder extends HiccupRecorder {
         final Scanner scanner;
 
-        InputRecorder(final IntervalHistogramRecorder recorder, final String inputFileName) {
+        InputRecorder(final SingleWriterRecorder recorder, final String inputFileName) {
             super(recorder, false);
             Scanner newScanner = null;
             try {
@@ -479,7 +479,7 @@ public class HiccupMeter extends Thread {
             }
         }
 
-        long processInputLine(final Scanner scanner, final IntervalHistogramRecorder recorder) {
+        long processInputLine(final Scanner scanner, final SingleWriterRecorder recorder) {
             if (scanner.hasNextLine()) {
                 try {
                     final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
@@ -512,7 +512,7 @@ public class HiccupMeter extends Thread {
         }
     }
 
-    public HiccupRecorder createHiccupRecorder(IntervalHistogramRecorder recorder) {
+    public HiccupRecorder createHiccupRecorder(SingleWriterRecorder recorder) {
         return new HiccupRecorder(recorder, config.allocateObjects);
     }
 
@@ -522,19 +522,14 @@ public class HiccupMeter extends Thread {
 
     @Override
     public void run() {
-        final IntervalHistogramRecorder recorder =
-                new IntervalHistogramRecorder(
+        final SingleWriterRecorder recorder =
+                new SingleWriterRecorder(
                         config.lowestTrackableValue,
                         config.highestTrackableValue,
                         config.numberOfSignificantValueDigits
                 );
 
-        Histogram intervalHistogram =
-                new Histogram(
-                        config.lowestTrackableValue,
-                        config.highestTrackableValue,
-                        config.numberOfSignificantValueDigits
-                );
+        Histogram intervalHistogram = null;
 
         HiccupRecorder hiccupRecorder;
 
@@ -603,7 +598,7 @@ public class HiccupMeter extends Thread {
                 now = hiccupRecorder.getCurrentTimeMsecWithDelay(nextReportingTime); // could return -1 to indicate termination
                 if (now > nextReportingTime) {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
-                    recorder.getIntervalHistogramInto(intervalHistogram);
+                    intervalHistogram = recorder.getIntervalHistogram(intervalHistogram);
                     // Adjust start and end time stamps to be relative to reportingStartTime:
                     intervalHistogram.setStartTimeStamp(
                             intervalHistogram.getStartTimeStamp() - reportingStartTime);
