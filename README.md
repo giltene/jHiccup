@@ -18,7 +18,7 @@ that may cause the running application to not be continuously runnable.
 
 jHiccup can be executed in one of three main ways:
 
-1. It can be run as a Java agent (using: java -javaagent=jHiccup.jar)
+1. It can be run as a Java agent (using: java -javaagent:jHiccup.jar)
 
 2. It can be injected into a running application (using: jHiccup -p <pid>)
 
