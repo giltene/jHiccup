@@ -581,6 +581,7 @@ public class HiccupMeter extends Thread {
                 }
 
                 histogramLogWriter.outputStartTime(reportingStartTime);
+                histogramLogWriter.setBaseTime(reportingStartTime);
 
             } else {
                 // Reading from input file, not sampling ourselves...:
@@ -599,11 +600,6 @@ public class HiccupMeter extends Thread {
                 if (now > nextReportingTime) {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
                     intervalHistogram = recorder.getIntervalHistogram(intervalHistogram);
-                    // Adjust start and end time stamps to be relative to reportingStartTime:
-                    intervalHistogram.setStartTimeStamp(
-                            intervalHistogram.getStartTimeStamp() - reportingStartTime);
-                    intervalHistogram.setEndTimeStamp(
-                            intervalHistogram.getEndTimeStamp() - reportingStartTime);
 
                     while (now > nextReportingTime) {
                         nextReportingTime += config.reportingIntervalMs;
