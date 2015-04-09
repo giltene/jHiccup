@@ -628,7 +628,6 @@ public class HiccupMeter extends Thread {
 
     public static HiccupMeter commonMain(final String[] args, boolean exitOnError) {
         HiccupMeter hiccupMeter = null;
-        Thread.currentThread().setName("HiccupBookkeeper ");
         try {
             hiccupMeter = new HiccupMeter(args, defaultHiccupLogFileName);
 
