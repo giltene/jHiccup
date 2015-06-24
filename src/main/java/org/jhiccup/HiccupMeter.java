@@ -332,7 +332,7 @@ public class HiccupMeter extends Thread {
                 " [-d startDelayMs]           Delay the beginning of hiccup measurement by\n" +
                 "                             startDelayMs milliseconds [default 30000]\n" +
                 " [-0]                        Start timestamps at 0 (as opposed to at JVM runtime at start point)\n" +
-                " [-i reportingIntervalMs]    Set reporting interval [default 50000]\n" +
+                " [-i reportingIntervalMs]    Set reporting interval [default 5000]\n" +
                 " [-r resolutionMs]           Set sampling resolution in milliseconds [default 1]\n" +
                 " [-t runTimeMs]              Limit measurement time [default 0, for infinite]\n" +
                 " [-terminateWithStdInput]    Take over standard input, and terminate process when\n" +
