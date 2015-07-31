@@ -155,6 +155,7 @@ public class HiccupMeter extends Thread {
         public String logFileName;
         public boolean logFileExplicitlySpecified = false;
         public String inputFileName = null;
+        public boolean fillInZerosInInputFile = false;
         public boolean logFormatCsv = false;
 
         public boolean launchControlProcess = false;
@@ -220,6 +221,8 @@ public class HiccupMeter extends Thread {
                         logFileExplicitlySpecified = true;
                     } else if (args[i].equals("-f")) {
                         inputFileName = args[++i];
+                    } else if (args[i].equals("-fz")) {
+                        fillInZerosInInputFile = true;
                     } else if (args[i].equals("-c")) {
                         launchControlProcess = true;
                     } else if (args[i].equals("-x")) {
@@ -340,7 +343,9 @@ public class HiccupMeter extends Thread {
                 "                             processes that wish to terminate when their launching\n" +
                 "                             parent does).\n" +
                 " [-f inputFileName]          Read timestamp and latency data from input file\n" +
-                "                             instead of sampling it directly\n" +
+                "                             instead of sampling it directly\n" +"" +
+                " [-fz]                       (applies only in conjunction with -f) fill in blank time ranges" +
+                "                             with zero values. Useful e.g. when processing GC-log derived input.\n" +
                 " [-s numberOfSignificantValueDigits]\n");
             }
         }
@@ -465,6 +470,7 @@ public class HiccupMeter extends Thread {
 
     class InputRecorder extends HiccupRecorder {
         final Scanner scanner;
+        long prevTimeMsec = 0;
 
         InputRecorder(final SingleWriterRecorder recorder, final String inputFileName) {
             super(recorder, false);
@@ -484,7 +490,17 @@ public class HiccupMeter extends Thread {
                 try {
                     final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
                     final long hiccupTimeNsec = (long) (scanner.nextDouble() * 1000000L); // Latency is expected to be in millis
+
+                    if (config.fillInZerosInInputFile && (timeMsec >= (prevTimeMsec + config.resolutionMs))) {
+                        // Fill in blank time ranges with zero values:
+                        recorder.recordValueWithCount(0L, (long) ((timeMsec - prevTimeMsec) / config.resolutionMs));
+                        prevTimeMsec = timeMsec;
+                    }
+
                     recorder.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
+                    if (timeMsec <= 0) {
+                        return 1; // Don't terminate on a zero timestamp.
+                    }
                     return timeMsec;
                 } catch (java.util.NoSuchElementException e) {
                     return -1;
@@ -594,6 +610,7 @@ public class HiccupMeter extends Thread {
             histogramLogWriter.outputLegend();
 
             long nextReportingTime = startTime + config.reportingIntervalMs;
+            long intervalStartTimeMsec = 0;
 
             while ((now > 0) && ((config.runTimeMs == 0) || (config.runTimeMs > now - startTime))) {
                 now = hiccupRecorder.getCurrentTimeMsecWithDelay(nextReportingTime); // could return -1 to indicate termination
@@ -603,6 +620,13 @@ public class HiccupMeter extends Thread {
 
                     while (now > nextReportingTime) {
                         nextReportingTime += config.reportingIntervalMs;
+                    }
+
+                    if (config.inputFileName != null) {
+                        // When read from input file, use timestamps from file input for start/end of log intervals:
+                        intervalHistogram.setStartTimeStamp(intervalStartTimeMsec);
+                        intervalHistogram.setEndTimeStamp(now);
+                        intervalStartTimeMsec = now;
                     }
 
                     if (intervalHistogram.getTotalCount() > 0) {
