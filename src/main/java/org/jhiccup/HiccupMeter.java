@@ -489,12 +489,13 @@ public class HiccupMeter extends Thread {
             if (scanner.hasNextLine()) {
                 try {
                     final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
-                    final long hiccupTimeNsec = (long) (scanner.nextDouble() * 1000000L); // Latency is expected to be in millis
+                    final long hiccupTimeMsec = (long) scanner.nextDouble(); // Latency is expected to be in millis
+                    final long hiccupTimeNsec = hiccupTimeMsec * 1000000L; // Latency is expected to be in millis
 
                     if (config.fillInZerosInInputFile && (timeMsec >= (prevTimeMsec + config.resolutionMs))) {
                         // Fill in blank time ranges with zero values:
                         recorder.recordValueWithCount(0L, (long) ((timeMsec - prevTimeMsec) / config.resolutionMs));
-                        prevTimeMsec = timeMsec;
+                        prevTimeMsec = timeMsec + hiccupTimeMsec;
                     }
 
                     recorder.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
