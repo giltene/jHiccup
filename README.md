@@ -78,7 +78,7 @@ Java agent without significant launch script surgery. For example:
 
 jHiccup logs hiccup information in a histogram log (see [HdrHistogram.org]
 (http://hdrhistogram.org/)). This histogram log contains a full, high fidelity
-histogram of all collected result sin each interval, in a highly compressed
+histogram of all collected results in each interval, in a highly compressed
 form (typically using only ~200-400 bytes per interval). However, other than
 the timestamp and maximum hiccup magnitude found in the given interval, the
 rest of the log line for each interval is not human readable (it is a base64
