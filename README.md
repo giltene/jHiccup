@@ -10,11 +10,6 @@ as explained at http://creativecommons.org/publicdomain/zero/1.0
 Version: 2.0.6
 ----------------------------------------------------------------------------
 
-###Example jHiccup plot 
-![example plot]
- 
-----------------------------------------------------------------------------
-
 jHiccup is a non-intrusive instrumentation tool that logs and records
 platform "hiccups" - including the JVM stalls that often happen when
 Java applications are executed and/or any OS or hardware platform noise
@@ -31,6 +26,10 @@ jHiccup can be executed in one of three main ways:
 
 ----------------------------------------------------------------------------
 
+###Example jHiccup plot 
+![example plot]
+ 
+----------------------------------------------------------------------------
 # Using jHiccup as a Java agent:
 
 jHiccup is most often used as a Java agent. This is useful for platforms and
