@@ -603,7 +603,13 @@ public class HiccupMeter extends Thread {
             } else {
                 // Reading from input file, not sampling ourselves...:
                 hiccupRecorder.start();
-                reportingStartTime = startTime = hiccupRecorder.getCurrentTimeMsecWithDelay(0);
+                now = reportingStartTime = hiccupRecorder.getCurrentTimeMsecWithDelay(0);
+
+                while (config.startDelayMs > now - reportingStartTime) {
+                    now = hiccupRecorder.getCurrentTimeMsecWithDelay(0);
+                }
+
+                startTime = now;
 
                 histogramLogWriter.outputComment("[Data read from input file \"" + config.inputFileName + "\" at " + new Date() + "]");
             }
