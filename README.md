@@ -9,6 +9,10 @@ as explained at http://creativecommons.org/publicdomain/zero/1.0
 
 Version: 2.0.6
 ----------------------------------------------------------------------------
+
+###Example jHiccup plot 
+![example plot]
+ 
 ----------------------------------------------------------------------------
 
 jHiccup is a non-intrusive instrumentation tool that logs and records
@@ -276,3 +280,5 @@ http://giltene.github.com/HdrHistogram
 jHiccup can be (re)built from source files using Maven:
 
     % mvn package
+
+[example plot]:https://raw.github.com/giltene/jHiccup/master/examplePlot.png "Example jHiccup plot"
