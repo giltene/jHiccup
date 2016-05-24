@@ -5,7 +5,6 @@
  */
 package org.jhiccup;
 
-import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -13,21 +12,14 @@ import static org.junit.Assert.*;
  *
  * @author sgrinev
  */
-public class HiccupMeterTest {
+public class HiccupConfigurationTest {
     
-    public HiccupMeterTest() {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-
     @Test
-    public void testConfiguration() {
+    public void testHelp() {
 
         HiccupMeter.HiccupMeterConfiguration config = 
                 new HiccupMeter.HiccupMeterConfiguration(new String[] {"-h"}, null);
-        assertTrue(config.error);
+        assertTrue(config.error); // which is questionable behaviour btw
     }
     
 }
