@@ -1,8 +1,12 @@
 language: java
+git:
+  depth: 3
 sudo: required
 services:
   - docker
 
 before_install:
-- docker build -t zulu .
-- docker run zulu /bin/sh -c "mvn -f jHiccup/pom.xml test"
+- pwd
+- docker build -t zulu-mvn-git .
+
+script: docker run zulu-mvn-git -v /jHiccup jHiccup /bin/sh -c "mvn -f /jHiccup/pom.xml test"
