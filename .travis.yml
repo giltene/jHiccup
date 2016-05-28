@@ -4,11 +4,7 @@ git:
 sudo: required
 services:
   - docker
-
-before_install:
-- pwd
-- docker build -t zulu-mvn-git .
-
+before_script:
+  - docker build -t zulu-mvn-git .
 script: 
-- pwd
-- docker run -v `pwd`:/jHiccup zulu-mvn-git /bin/sh -c "ls /jHiccup; mvn -f /jHiccup/pom.xml test"
+  - docker run -v `pwd`:/jHiccup zulu-mvn-git /bin/sh -c "mvn -f /jHiccup/pom.xml test"
