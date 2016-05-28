@@ -11,4 +11,4 @@ before_install:
 
 script: 
 - pwd
-- docker run -v /jHiccup:`pwd` zulu-mvn-git /bin/sh -c "ls /jHiccup; mvn -f /jHiccup/pom.xml test"
+- docker run -v `pwd`:/jHiccup zulu-mvn-git /bin/sh -c "ls /jHiccup; mvn -f /jHiccup/pom.xml test"
