@@ -6,6 +6,7 @@
 package org.jhiccup;
 
 import java.lang.management.ManagementFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -14,6 +15,12 @@ import org.junit.Test;
  */
 public class HiccupMeterTest {
  
+    @Before
+    public void setUp() {
+        System.out.println("Vendor = " + System.getProperty("java.vendor"));
+        System.out.println("Version = " + System.getProperty("java.version"));
+    }
+    
     @Test
     public void testAttach() {
         String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];

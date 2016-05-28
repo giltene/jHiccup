@@ -19,7 +19,7 @@ public class HiccupConfigurationTest {
 
         HiccupMeter.HiccupMeterConfiguration config = 
                 new HiccupMeter.HiccupMeterConfiguration(new String[] {"-h"}, null);
-        assertTrue(config.error); // a bug?
+        assertTrue(config.error); // NB: a bug
     }
     
 }
