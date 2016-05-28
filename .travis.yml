@@ -5,4 +5,4 @@ services:
 
 before_install:
 - docker build -t zulu .
-- docker run zulu "mvn -f jHiccup/pom.xml test"
+- docker run zulu /bin/sh -c "mvn -f jHiccup/pom.xml test"
