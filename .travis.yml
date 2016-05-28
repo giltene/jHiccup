@@ -4,5 +4,5 @@ services:
   - docker
 
 before_install:
-- docker pull azul/zulu-openjdk:8
-- docker run azul/zulu-openjdk:8 /bin/sh -c "find ."
+- docker build -t zulu
+- docker run zulu "mvn test"
