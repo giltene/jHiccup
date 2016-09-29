@@ -171,6 +171,8 @@ done
 #
 JHICCUP_DelayArg=
 readingDelayArg=0
+JHICCUP_RunTimeArg=
+readingRunTimeArg=0
 JHICCUP_IntervalArg=
 readingIntervalArg=0
 JHICCUP_ResolutionArg=
@@ -190,6 +192,9 @@ for var in $JHiccupArgs; do
 	if [ $readingDelayArg -eq 1 ]; then
 		JHICCUP_DelayArg=$var
 		readingDelayArg=0
+	elif [ $readingRunTimeArg -eq 1 ]; then
+        JHICCUP_RunTimeArg=$var
+        readingRunTimeArg=0
 	elif [ $readingIntervalArg -eq 1 ]; then
 		JHICCUP_IntervalArg=$var
 		readingIntervalArg=0
@@ -204,6 +209,8 @@ for var in $JHiccupArgs; do
         readingPidOfProcessToAttacheToArg=0
 	elif [ $var = "-d" ]; then
 		readingDelayArg=1
+	elif [ $var = "-t" ]; then
+        readingRunTimeArg=1
 	elif [ $var = "-i" ]; then
 		readingIntervalArg=1
 	elif [ $var = "-r" ]; then
@@ -226,6 +233,20 @@ for var in $JHiccupArgs; do
 	fi
 done
 
+if [ $readingDelayArg -eq 1 ]; then
+    JHiccupArgs_parse_error=1
+elif [ $readingRunTimeArg -eq 1 ]; then
+    JHiccupArgs_parse_error=1
+elif [ $readingIntervalArg -eq 1 ]; then
+    JHiccupArgs_parse_error=1
+elif [ $readingResolutionArg -eq 1 ]; then
+    JHiccupArgs_parse_error=1
+elif [ $readingLognnameArg -eq 1 ]; then
+    JHiccupArgs_parse_error=1
+elif [ $readingPidOfProcessToAttacheToArg -eq 1 ]; then
+    JHiccupArgs_parse_error=1
+fi
+
 # Should not have both a java command and a -p option:
 if [ $PARSED_BinJava ]; then
     if [ $JHICCUP_PidOfProcessToAttacheToArg ]; then
@@ -237,10 +258,10 @@ if [ $JHiccupArgs_parse_error ]; then
 		echo $PARSED_SCRIPT $@
 		echo jHiccup version $JHICCUP_Version
 		echo "Usage:"
-		echo "  jHiccup [-d startupDelayMsec] [-i recordingIntervalMsec] [-l logname]"
+		echo "  jHiccup [-d startupDelayMsec] [-t runTimeMsec] [-i recordingIntervalMsec] [-l logname]"
 		echo "               [-r sampleResolutionMsec] [-c] [-p pidOfProcessToAttachTo]"
 		echo "  or:"
-		echo "  jHiccup [-d startupDelayMsec] [-i recordingIntervalMsec] [-l logname]"
+		echo "  jHiccup [-d startupDelayMsec] [-t runTimeMsec] [-i recordingIntervalMsec] [-l logname]"
         echo "               [-r sampleResolutionMsec] [-c] <java command line>"
 		echo "Where:"
 		echo " -l logname                Sets the log files to <logname> and <logname>.hgrm"
@@ -254,6 +275,8 @@ if [ $JHiccupArgs_parse_error ]; then
 		echo "                           (no default)"
 		echo " -d startupDelayMsec       Sets the delay, in milliseconds before sampling starts"
 		echo "                           (default 30000 for non-attach (-p) runs, 0 for attach (-p) runs)"
+		echo " -t runTimeMsec            Limit measurement and logging time"
+        echo "                           (default 0, for infinite)"
 		echo " -0                        Start logfile timestamps at 0 (as opposed to JVM uptime at start point)"
 		echo "                           (default off)"
 		echo " -i recordingIntervalMsec  Sets the reporting interval in milliseconds"
@@ -268,6 +291,10 @@ JHICCUP_Options=""
 
 if [ $JHICCUP_DelayArg ]; then
 	JHICCUP_Options="${JHICCUP_Options}-d $JHICCUP_DelayArg "
+fi
+
+if [ $JHICCUP_RunTimeArg ]; then
+	JHICCUP_Options="${JHICCUP_Options}-t $JHICCUP_RunTimeArg "
 fi
 
 if [ $JHICCUP_IntervalArg ]; then
