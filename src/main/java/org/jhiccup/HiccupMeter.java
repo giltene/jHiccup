@@ -251,6 +251,10 @@ public class HiccupMeter extends Thread {
                                 " -s " + numberOfSignificantValueDigits +
                                 " -r " + resolutionMs;
 
+                    if (runTimeMs != 0) {
+                        agentArgs += " -t " + runTimeMs;
+                    }
+
                     if (logFileExplicitlySpecified) {
                         agentArgs += " -l " + logFileName;
                     }
