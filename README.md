@@ -1,5 +1,5 @@
 # jHiccup
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/giltene/jHiccup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/giltene/jHiccup.svg?branch=master)](https://travis-ci.org/giltene/jHiccup) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/giltene/jHiccup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ----------------------------------------------------------------------------
 
 Written by Gil Tene of Azul Systems, and released to the public domain
