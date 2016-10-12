@@ -1,0 +1,10 @@
+language: java
+git:
+  depth: 3
+sudo: required
+services:
+  - docker
+before_script:
+  - docker build -t zulu-mvn-git .
+script: 
+  - docker run -v `pwd`:/jHiccup zulu-mvn-git /bin/sh -c "mvn -f /jHiccup/pom.xml test"
