@@ -13,7 +13,6 @@ import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.lang.management.*;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -431,7 +430,6 @@ public class HiccupMeter extends Thread {
         public void terminate() {
             doRun = false;
         }
-
 
         public long getCurrentTimeMsecWithDelay(final long nextReportingTime) throws InterruptedException {
             final long now = System.currentTimeMillis();
