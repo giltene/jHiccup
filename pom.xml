@@ -167,6 +167,7 @@
                                     <result>org.jhiccup.internal.hdrhistogram.@1</result>
                                 </rule>
                             </rules>
+                            <overwrite>true</overwrite>
                         </configuration>
                     </execution>
                 </executions>
