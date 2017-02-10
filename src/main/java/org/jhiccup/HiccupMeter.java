@@ -158,6 +158,7 @@ public class HiccupMeter extends Thread {
         public boolean logFormatCsv = false;
 
         public boolean launchControlProcess = false;
+        public long launchControlProcessHeapSizeMBFilter = 0;
         public String controlProcessLogFileName = null;
         public String controlProcessCommand = null;
         public boolean controlProcessJvmArgsExplicitlySpecified = false;
@@ -224,6 +225,8 @@ public class HiccupMeter extends Thread {
                         fillInZerosInInputFile = true;
                     } else if (args[i].equals("-c")) {
                         launchControlProcess = true;
+                    } else if (args[i].equals("-cfmb")) {
+                        launchControlProcessHeapSizeMBFilter = Long.parseLong(args[++i]);;
                     } else if (args[i].equals("-x")) {
                         controlProcessJvmArgs = args[++i];
                         controlProcessJvmArgsExplicitlySpecified = true;
@@ -273,6 +276,15 @@ public class HiccupMeter extends Thread {
                     if (logFormatCsv) {
                         agentArgs += " -o";
                     }
+                }
+
+                if (launchControlProcess && (launchControlProcessHeapSizeMBFilter > 0)) {
+                        MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
+                        MemoryUsage memoryUsage = mxbean.getHeapMemoryUsage();
+                        long estimatedHeapMB = (memoryUsage.getMax() / (1024 * 1024));
+                        if (estimatedHeapMB < launchControlProcessHeapSizeMBFilter) {
+                            launchControlProcess = false;
+                        }
                 }
 
                 if (launchControlProcess) {
@@ -332,6 +344,8 @@ public class HiccupMeter extends Thread {
                 " [-o]                        Output log files in CSV format\n" +
                 " [-c]                        Launch a control process in a separate JVM\n" +
                 "                             logging hiccup data into logFileName.c and logFileName.c.hgrm\n" +
+                " [-cfmb controlProcessArgs]  Control process filter heap size (in MB): only launch control proc if\n" +
+                "                             this process's heap size is larger than the -cfmb parameter\n" +
                 " [-x controlProcessArgs]     Pass additional args to the control process JVM\n" +
                 " [-p pidOfProcessToAttachTo] Attach to the process with given pid and inject jHiccup as an agent\n" +
                 " [-j jHiccupJarFileName]     File name for the jHiccup.jar file, and required with [-p] option above\n" +
