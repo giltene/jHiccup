@@ -26,7 +26,7 @@ jHiccup can be executed in one of three main ways:
 
 ----------------------------------------------------------------------------
 
-###Example jHiccup plot 
+### Example jHiccup plot 
 ![example plot]
  
 ----------------------------------------------------------------------------
