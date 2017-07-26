@@ -221,6 +221,7 @@ public class HiccupMeter extends Thread {
                         logFileExplicitlySpecified = true;
                     } else if (args[i].equals("-f")) {
                         inputFileName = args[++i];
+                        lowestTrackableValue = 1L; // drop to ~1 nsec best-case resolution when processing files
                     } else if (args[i].equals("-fz")) {
                         fillInZerosInInputFile = true;
                     } else if (args[i].equals("-c")) {
@@ -505,13 +506,13 @@ public class HiccupMeter extends Thread {
             if (scanner.hasNextLine()) {
                 try {
                     final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
-                    final long hiccupTimeMsec = (long) scanner.nextDouble(); // Latency is expected to be in millis
-                    final long hiccupTimeNsec = hiccupTimeMsec * 1000000L; // Latency is expected to be in millis
+                    final double hiccupTimeMsec = scanner.nextDouble(); // Latency is expected to be in millis
+                    final long hiccupTimeNsec = (long)(hiccupTimeMsec * 1000000.0); // Latency is expected to be in millis
 
                     if (config.fillInZerosInInputFile && (timeMsec >= (prevTimeMsec + config.resolutionMs))) {
                         // Fill in blank time ranges with zero values:
                         recorder.recordValueWithCount(0L, (long) ((timeMsec - prevTimeMsec) / config.resolutionMs));
-                        prevTimeMsec = timeMsec + hiccupTimeMsec;
+                        prevTimeMsec = timeMsec + (long) hiccupTimeMsec;
                     }
 
                     recorder.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
