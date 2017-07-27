@@ -222,6 +222,7 @@ public class HiccupMeter extends Thread {
                     } else if (args[i].equals("-f")) {
                         inputFileName = args[++i];
                         lowestTrackableValue = 1L; // drop to ~1 nsec best-case resolution when processing files
+                        startDelayMs = 0; // Start from 0 when processing files
                     } else if (args[i].equals("-fz")) {
                         fillInZerosInInputFile = true;
                     } else if (args[i].equals("-c")) {
@@ -489,6 +490,11 @@ public class HiccupMeter extends Thread {
         final Scanner scanner;
         long prevTimeMsec = 0;
 
+        long inputLineTimeMsec = -1;
+        long msecThatPrecedesInputLine = -1;
+        double inputLinehiccupTimeMsec = -1;
+
+
         InputRecorder(final SingleWriterRecorder recorder, final String inputFileName) {
             super(recorder, false);
             Scanner newScanner = null;
@@ -505,21 +511,13 @@ public class HiccupMeter extends Thread {
         long processInputLine(final Scanner scanner, final SingleWriterRecorder recorder) {
             if (scanner.hasNextLine()) {
                 try {
-                    final long timeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
-                    final double hiccupTimeMsec = scanner.nextDouble(); // Latency is expected to be in millis
-                    final long hiccupTimeNsec = (long)(hiccupTimeMsec * 1000000.0); // Latency is expected to be in millis
-
-                    if (config.fillInZerosInInputFile && (timeMsec >= (prevTimeMsec + config.resolutionMs))) {
-                        // Fill in blank time ranges with zero values:
-                        recorder.recordValueWithCount(0L, (long) ((timeMsec - prevTimeMsec) / config.resolutionMs));
-                        prevTimeMsec = timeMsec + (long) hiccupTimeMsec;
+                    inputLineTimeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
+                    inputLinehiccupTimeMsec = scanner.nextDouble(); // Latency is expected to be in millis
+                    msecThatPrecedesInputLine = inputLineTimeMsec - (long)Math.ceil(inputLinehiccupTimeMsec);
+                    if (inputLineTimeMsec < prevTimeMsec) {
+                        return -1; // Input time is going backwards. Can't have that. Terminate.
                     }
-
-                    recorder.recordValueWithExpectedInterval(hiccupTimeNsec, (long)(config.resolutionMs * 1000000L));
-                    if (timeMsec <= 0) {
-                        return 1; // Don't terminate on a zero timestamp.
-                    }
-                    return timeMsec;
+                    return inputLineTimeMsec;
                 } catch (java.util.NoSuchElementException e) {
                     return -1;
                 }
@@ -529,7 +527,42 @@ public class HiccupMeter extends Thread {
 
         @Override
         public long getCurrentTimeMsecWithDelay(final long nextReportingTime) throws InterruptedException {
-            return processInputLine(scanner, recorder);
+            // The following loop will terminate either at the next reporting time, or when input is exhausted:
+            do {
+                if (nextReportingTime <= msecThatPrecedesInputLine) {
+                    // Nothing in the input before the nextReportingTime:
+
+                    long numberOfTicksBeforeNextReportingTime =
+                            (long) ((nextReportingTime - prevTimeMsec) / config.resolutionMs);
+                    if (config.fillInZerosInInputFile && (numberOfTicksBeforeNextReportingTime > 0)) {
+                        // fill in blank time between prevTimeMsec and nextReportingTime with zero values:
+                        recorder.recordValueWithCount(0L, numberOfTicksBeforeNextReportingTime);
+                    }
+                    
+                    // Indicate that we've processed input up to nextReportingTime:
+                    prevTimeMsec = nextReportingTime;
+
+                    return nextReportingTime;
+                } else if (msecThatPrecedesInputLine >= 0) {
+                    // Process previously read input:
+                    long numberOfTicksBeforeInputHiccup =
+                            (long) ((msecThatPrecedesInputLine - prevTimeMsec) / config.resolutionMs);
+                    if (config.fillInZerosInInputFile && (numberOfTicksBeforeInputHiccup > 0)) {
+                        // Fill in blank time between previously processed time and the hiccup with zero values:
+                        recorder.recordValueWithCount(0L, numberOfTicksBeforeInputHiccup);
+                    }
+
+                    final long hiccupTimeNsec = (long) (inputLinehiccupTimeMsec * 1000000.0);
+                    recorder.recordValueWithExpectedInterval(hiccupTimeNsec, (long) (config.resolutionMs * 1000000L));
+
+                    // indicate that we've processed input up to the end of the previously read line:
+                    prevTimeMsec = inputLineTimeMsec;
+                }
+                // Read next line:
+            } while (processInputLine(scanner, recorder) >= 0);
+
+            // Input exhausted :
+            return -1;
         }
 
         @Override
@@ -636,13 +669,13 @@ public class HiccupMeter extends Thread {
             long nextReportingTime = startTime + config.reportingIntervalMs;
             long intervalStartTimeMsec = 0;
 
-            while ((now > 0) && ((config.runTimeMs == 0) || (config.runTimeMs > now - startTime))) {
+            while ((now >= 0) && ((config.runTimeMs == 0) || (config.runTimeMs > now - startTime))) {
                 now = hiccupRecorder.getCurrentTimeMsecWithDelay(nextReportingTime); // could return -1 to indicate termination
-                if (now > nextReportingTime) {
+                if (now >= nextReportingTime) {
                     // Get the latest interval histogram and give the recorder a fresh Histogram for the next interval
                     intervalHistogram = recorder.getIntervalHistogram(intervalHistogram);
 
-                    while (now > nextReportingTime) {
+                    while (now >= nextReportingTime) {
                         nextReportingTime += config.reportingIntervalMs;
                     }
 
