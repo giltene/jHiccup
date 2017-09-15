@@ -11,7 +11,7 @@
     <url>http://jhiccup.org</url>
 
     <description>
-        jHiccup is a lightweigth, non-intrusive instrumentation tool that logs and records
+        jHiccup is a lightweight, non-intrusive instrumentation tool that logs and records
         platform "hiccups" - including the JVM stalls that often happen when
         Java applications are executed and/or any OS or hardware platform noise
         that may cause the running application to not be continuously runnable.
@@ -231,7 +231,7 @@
         <dependency>
             <groupId>org.hdrhistogram</groupId>
             <artifactId>HdrHistogram</artifactId>
-            <version>2.1.9</version>
+            <version>2.1.10</version>
         </dependency>
     </dependencies>
 
