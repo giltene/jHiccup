@@ -41,7 +41,7 @@ public class HiccupMeterAttacher {
             // We are supposed to attach to another process and launch a jHiccup agent there, not here.
             if (config.verbose) {
                 System.out.println("Attaching to process " + config.pidOfProcessToAttachTo +
-                        " and launching jHiccup agent from jar " + config.pidOfProcessToAttachTo +
+                        " and launching jHiccup agent from jar " + config.agentJarFileName +
                         " with args: " + config.agentArgs );
             }
             VirtualMachine vm = VirtualMachine.attach(config.pidOfProcessToAttachTo);
