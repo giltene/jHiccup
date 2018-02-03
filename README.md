@@ -80,16 +80,15 @@ Java agent without significant launch script surgery. For example:
 
 # Reading and processing the jHiccup log with jHiccupLogProcessor:
 
-jHiccup logs hiccup information in a histogram log (see [HdrHistogram.org]
-(http://hdrhistogram.org/)). This histogram log contains a full, high fidelity
+jHiccup logs hiccup information in a histogram log (see 
+[HdrHistogram.org](http://hdrhistogram.org/)). This histogram log contains a full, high fidelity
 histogram of all collected results in each interval, in a highly compressed
 form (typically using only ~200-400 bytes per interval). However, other than
 the timestamp and maximum hiccup magnitude found in the given interval, the
 rest of the log line for each interval is not human readable (it is a base64
 encoding of a compressed HdrHistogram).
 
-To translate the jHiccup log file to a more human-readable form (identical to
-the form that jHiccup versions before jHiccup 2.0 had used), the jHiccupLogProcessor
+To translate the jHiccup log file to a more human-readable form, the jHiccupLogProcessor
 utility is provided. In it's simplest form, this utility can be used as such
 
     % jHiccupLogProcessor -i mylog.hlog -o mylog
@@ -102,6 +101,17 @@ jHiccupLogProcessor can also be used to produce log files for an arbitrary
 section of the jHiccup log, by using the optional `-start` and `-end` parameters.
 
 See `jHiccupLogProcessor -h` for more details.
+
+----------------------------------------------------------------------------
+
+# Hiccup Charts: Plotting jHiccup results
+
+Since jHiccup uses [HdrHistogram](http://hdrhistogram.org/) and produces
+HdrHistogram logs, various tools that plot and view histogram logs can be
+used to analyze jhiccup data. Some common tools include
+[HistggramLogAnalyzer](https://github.com/HdrHistogram/HistogramLogAnalyzer)
+, [HdrHistogramVisualizer](https://github.com/ennerf/HdrHistogramVisualizer)  
+, and a javascript-based in-browser [histogram log parser](https://hdrhistogram.github.io/HdrHistogramJSDemo/logparser.html)
 
 ----------------------------------------------------------------------------
 
@@ -158,20 +168,6 @@ for 30 seconds and exits:
     % jHiccup -d 4000 /usr/bin/java org.jhiccup.Idle -t 30000
 
 [Run `jHiccup -h`, or see comment in jHiccup script for more details.]
-
-----------------------------------------------------------------------------
-
-# Hiccup Charts: Plotting jHiccup results
-
-A `jHiccupPlotter.xls` Excel spreadsheet is included to conveniently
-plot jHiccup log files produced by jHiccupLogProcessor in "Hiccup Chart"form.
-To use the spreadsheet, load it into Excel, (make sure to enable macros),
-and follow the 2-step instructions in the main menu worksheet to automatically
-import the log files and produce the Hiccup Chart.
-
-Note that `jHiccupPlotter.xls` reads the log files produced by jHiccupLogProcessor,
-(the interval log and the .hgrm histogram percentile distribution log), and
-not the .hlog log format that jHiccup outputs directly.
 
 ----------------------------------------------------------------------------
 
@@ -268,10 +264,9 @@ with:
 # Note: Use of HdrHistogram.
 
 jHiccup depends on and makes systemic use of HdrHistogram to collected and
-report on the statistical distribution of hiccups. This package includes an
-`HdrHistogram.jar` jar file to support this functionality. HdrHistogram sources,
-documentation, and a ready to use jar file can all be found on GitHub, at
-http://giltene.github.com/HdrHistogram
+report on the statistical distribution of hiccups. HdrHistogram sources
+and documentation can be found on GitHub, at
+http://hdrhistogram.github.io/HdrHistogram/
 
 ----------------------------------------------------------------------------
 
