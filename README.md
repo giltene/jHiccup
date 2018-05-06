@@ -8,7 +8,7 @@ as explained at http://creativecommons.org/publicdomain/zero/1.0
 
 ----------------------------------------------------------------------------
 
-Version: 2.0.8
+Version: 2.0.9
 ----------------------------------------------------------------------------
 
 jHiccup is a non-intrusive instrumentation tool that logs and records
@@ -225,7 +225,7 @@ log file name setting is simply `hiccup.%date.%pid`.
 
 # Using jHiccup to process latency log files:
 
-jHiccup's HiccupMeter class supports a mode `-f` that will take latency
+jHiccup's main HiccupMeter class supports a mode `-f` that will take latency
 input from a file instead of recording it. This is useful for producing
 jHiccup-style text and graphical output for recorded latency data collected
 by some other means.
@@ -246,6 +246,46 @@ corrects for "coordinated omission" situations (where long response times
 lead to "skipped" requests that would have typically correlated with "bad"
 response times). A "large" value (e.g. `-r 100000`) can easily be specified
 to avoid any correction of this situation.
+
+Example:
+
+    % java -jar jHiccup.jar -i 1000 -f inputLatenies -l latencies.hlog
+
+----------------------------------------------------------------------------
+
+# Using jHiccup to process pause logs from e.g. gc log files:
+
+When run in the file injestion mode (`-f`), jHiccup's main HiccupMeter
+class supports an optional "fill zeros" (`-fz`) mode. This mode is
+useful for processing input that represent pause events rather than
+latencies.
+
+A common use case for this feature is producing hiccup logs from GC logs.
+GC logs will generally include pause information, which can be parsed out
+to a "pauses log". jHiccup can takes a "pauses logs" as input
+
+
+When provided to the `-f` option, in conjunction with a `-fz` option, an
+input file is expected to contain two white-space delimited values per
+line (in either integer or real number format), representing a time stamp
+and a measured length of a pause, both in millisecond units.
+
+Example (parsing gc log with +PrintGCTimeStamps):
+
+    % java ... -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCTimeStamps -Xloggc:gc.log ...
+    
+    % awk -F": " '/\[GC/ {t = $1; l = 1; while ((l == 1) && index($0, "Total time") == 0) { l = getline; } if (l == 1) {print t*1000.0, $3*1000.0;}}' gc.log > gcPauses.log
+
+    % java -jar jHiccup.jar -i 1000 -f gcPauses.log -fz -l pauses.hlog
+  
+Example (with both +PrintGCTimeStamps and +PrintGCDateStamps):
+  
+    % java ... -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xloggc:gc.log ...
+     
+    % awk -F": " '/\[GC/ {t = $2; l = 1; while ((l == 1) && index($0, "Total time") == 0) { l = getline; } if (l == 1) {print t*1000.0, $4*1000.0;}}' gc.log > gcPauses.log
+ 
+    % java -jar jHiccup.jar -i 1000 -f gcPauses.log -fz -l pauses.hlog
+    
 
 ----------------------------------------------------------------------------
 

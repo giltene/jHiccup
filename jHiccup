@@ -5,7 +5,7 @@
 # Written by Gil Tene, and released to the public domain, as explained at
 #  http://creativecommons.org/publicdomain/zero/1.0/
 #
-JHICCUP_Version=2.0.5
+JHICCUP_Version=2.0.9
 #
 # jHiccup is a platform pause measurement tool, it is meant to observe the
 # underlying platform (JVM, OS, HW, etc.) responsiveness while under an
@@ -51,7 +51,7 @@ JHICCUP_Version=2.0.5
 #
 #
 # jHiccup can be configured to delay the start of measurement
-# (using the -d <startDelayMs> flag, defaults to 30000 msec).
+# (using the -d <startDelayMs> flag, defaults to 0 msec).
 #
 # jHiccup will continue to run until the application it is wrapping exists.
 #
@@ -274,7 +274,7 @@ if [ $JHiccupArgs_parse_error ]; then
 		echo " -p pidOfProcessToAttachTo Attach to the process with given pid and inject jHiccup as an agent"
 		echo "                           (no default)"
 		echo " -d startupDelayMsec       Sets the delay, in milliseconds before sampling starts"
-		echo "                           (default 30000 for non-attach (-p) runs, 0 for attach (-p) runs)"
+		echo "                           (default 0)"
 		echo " -t runTimeMsec            Limit measurement and logging time"
         echo "                           (default 0, for infinite)"
 		echo " -0                        Start logfile timestamps at 0 (as opposed to JVM uptime at start point)"
