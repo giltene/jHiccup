@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
  * one generated in the previous interval.
  * <p>
  * HiccupMeter can be configured to delay the start of measurement
- * (using the -d <startDelayMs> flag, defaults to 30000 msec). It can also be
+ * (using the -d <startDelayMs> flag, defaults to 0 msec). It can also be
  * configured to terminate measurement after a given length of time (using the
  * -t <runTimeMs> flag). If the -t flag is not used, HiccupMeter will continue
  * to run until the Class executed with via the -exec parameter (see below)
@@ -146,7 +146,7 @@ public class HiccupMeter extends Thread {
         public double resolutionMs = 1.0;
         public long runTimeMs = 0;
         public long reportingIntervalMs = 5000;
-        public long startDelayMs = 30000;
+        public long startDelayMs = 0;
         public boolean startDelayMsExplicitlySpecified = false;
 
         public boolean verbose = false;
@@ -172,7 +172,7 @@ public class HiccupMeter extends Thread {
         public boolean startTimeAtZero = false;
 
         public long lowestTrackableValue = 1000L * 20L; // default to ~20usec best-case resolution
-        public long highestTrackableValue = 3600 * 1000L * 1000L * 1000L;
+        public long highestTrackableValue = 30 * 24 * 3600 * 1000L * 1000L * 1000L; // 1 Month
         public int numberOfSignificantValueDigits = 2;
 
         public boolean error = false;
@@ -222,7 +222,6 @@ public class HiccupMeter extends Thread {
                     } else if (args[i].equals("-f")) {
                         inputFileName = args[++i];
                         lowestTrackableValue = 1L; // drop to ~1 nsec best-case resolution when processing files
-                        startDelayMs = 0; // Start from 0 when processing files
                     } else if (args[i].equals("-fz")) {
                         fillInZerosInInputFile = true;
                     } else if (args[i].equals("-c")) {
@@ -352,7 +351,7 @@ public class HiccupMeter extends Thread {
                 " [-p pidOfProcessToAttachTo] Attach to the process with given pid and inject jHiccup as an agent\n" +
                 " [-j jHiccupJarFileName]     File name for the jHiccup.jar file, and required with [-p] option above\n" +
                 " [-d startDelayMs]           Delay the beginning of hiccup measurement by\n" +
-                "                             startDelayMs milliseconds [default 30000]\n" +
+                "                             startDelayMs milliseconds [default 0]\n" +
                 " [-0]                        Start timestamps at 0 (as opposed to at JVM runtime at start point)\n" +
                 " [-i reportingIntervalMs]    Set reporting interval [default 5000]\n" +
                 " [-r resolutionMs]           Set sampling resolution in milliseconds [default 1]\n" +
@@ -458,8 +457,8 @@ public class HiccupMeter extends Thread {
             final long resolutionNsec = (long)(config.resolutionMs * 1000L * 1000L);
             try {
                 long shortestObservedDeltaTimeNsec = Long.MAX_VALUE;
+                long timeBeforeMeasurement = Long.MAX_VALUE;
                 while (doRun) {
-                    final long timeBeforeMeasurement = System.nanoTime();
                     if (config.resolutionMs != 0) {
                         TimeUnit.NANOSECONDS.sleep(resolutionNsec);
                         if (allocateObjects) {
@@ -469,6 +468,13 @@ public class HiccupMeter extends Thread {
                     }
                     final long timeAfterMeasurement = System.nanoTime();
                     final long deltaTimeNsec = timeAfterMeasurement - timeBeforeMeasurement;
+                    timeBeforeMeasurement = timeAfterMeasurement;
+
+                    if (deltaTimeNsec < 0) {
+                        // On the very first iteration (which will not time the loop in it's entirety)
+                        // the delta will be negative, and we'll skip recording.
+                        continue;
+                    }
 
                     if (deltaTimeNsec < shortestObservedDeltaTimeNsec) {
                         shortestObservedDeltaTimeNsec = deltaTimeNsec;
@@ -488,8 +494,8 @@ public class HiccupMeter extends Thread {
 
     class InputRecorder extends HiccupRecorder {
         final Scanner scanner;
-        long prevTimeMsec = -1;
-        long inputLineTimeMsec = -1;
+        long prevTimeMsec = 0;
+        long inputLineTimeMsec = 0;
         long msecThatPrecedesInputLine = -1;
         double inputLineHiccupTimeMsec = -1;
         boolean reportedAfterTerminate = false;
@@ -513,7 +519,9 @@ public class HiccupMeter extends Thread {
                 try {
                     inputLineTimeMsec = (long) scanner.nextDouble(); // Timestamp is expect to be in millis
                     inputLineHiccupTimeMsec = scanner.nextDouble(); // Latency is expected to be in millis
-                    msecThatPrecedesInputLine = inputLineTimeMsec - (long)Math.ceil(inputLineHiccupTimeMsec);
+                    msecThatPrecedesInputLine = config.fillInZerosInInputFile ?
+                            inputLineTimeMsec - (long)Math.ceil(inputLineHiccupTimeMsec) :
+                            inputLineTimeMsec;
                     if (inputLineTimeMsec < prevTimeMsec) {
                         return -1; // Input time is going backwards. Can't have that. Terminate.
                     }
@@ -543,7 +551,7 @@ public class HiccupMeter extends Thread {
                     prevTimeMsec = nextReportingTime;
 
                     return nextReportingTime;
-                } else if (msecThatPrecedesInputLine > prevTimeMsec) {
+                } else if (msecThatPrecedesInputLine >= prevTimeMsec) {
                     // Process previously read input:
                     long numberOfTicksBeforeInputHiccup =
                             (long) ((msecThatPrecedesInputLine - prevTimeMsec) / config.resolutionMs);
