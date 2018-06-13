@@ -198,6 +198,8 @@ public class HiccupMeter extends Thread {
                         verbose = true;
                     } else if (args[i].equals("-0")) {
                         startTimeAtZero = true;
+                    } else if (args[i].equals("-a")) {
+                        allocateObjects = true;
                     } else if (args[i].equals("-p")) {
                         attachToProcess = true;
                         pidOfProcessToAttachTo = args[++i];
@@ -353,6 +355,7 @@ public class HiccupMeter extends Thread {
                 " [-d startDelayMs]           Delay the beginning of hiccup measurement by\n" +
                 "                             startDelayMs milliseconds [default 0]\n" +
                 " [-0]                        Start timestamps at 0 (as opposed to at JVM runtime at start point)\n" +
+                " [-a]                        Allocate a throwaway object on every sample [default false]\n" +
                 " [-i reportingIntervalMs]    Set reporting interval [default 5000]\n" +
                 " [-r resolutionMs]           Set sampling resolution in milliseconds [default 1]\n" +
                 " [-t runTimeMs]              Limit measurement time [default 0, for infinite]\n" +
