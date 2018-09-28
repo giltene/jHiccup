@@ -43,15 +43,35 @@ JHICCUP_Version=2.0.4
 # PARSED_SCRIPT=`readlink -f $0`
 # INSTALLED_PATH=`dirname $PARSED_SCRIPT`
 # But readlink -f doesn't work the same everywhere (e.g. Mac OS). We use this instead:
-function readlink_f () { _=`pwd`; cd `dirname $1` && echo `pwd` && cd $_; }
-INSTALLED_PATH=$(readlink_f $0)
+readlink_f() {
+  local _dir _path="$1"
+  [ -d "$_path" ] && _path=$(cd "$_path"; pwd -P)
+  while [ -L "$_path" ]; do
+    _dir=$(dirname "$_path")
+    _path=$(readlink "$_path")
+    [ -n "${_path##/*}" ] && _path="${_dir}/${_path}"
+  done
+  [ -f "$_path" ] && _path="$(cd "$(dirname "$_path")"; pwd -P)/${_path##*/}"
+  echo "${_path%/}"
+}
+
+INSTALLED_PATH=$(dirname "$(readlink_f "$0")")
 
 # Check if running from unpacked distribution archive by assuming jHiccup.jar
 # in the same directory as this script. If not, try to search in target/ directory
 # (running from the source repository build).
-JHICCUP_JAR_FILE=$INSTALLED_PATH/jHiccup.jar
-if [ ! -f $JHICCUP_JAR_FILE ] ; then
-  JHICCUP_JAR_FILE=$INSTALLED_PATH/target/jHiccup.jar
+JHICCUP_JAR_FILE="$INSTALLED_PATH/jHiccup.jar"
+if [ ! -f "$JHICCUP_JAR_FILE" ] ; then
+  JHICCUP_JAR_FILE="$INSTALLED_PATH/target/jHiccup.jar"
+fi
+
+if [ ! -f "$JHICCUP_JAR_FILE" ] ; then
+  JHICCUP_JAR_FILE="$INSTALLED_PATH/../jHiccup.jar"
+fi
+
+if [ ! -f "$JHICCUP_JAR_FILE" ] ; then
+    echo "For this command to run, jHiccup.jar must be available in '${INSTALLED_PATH%/bin*}'."
+    exit 1
 fi
 
 JAVA_BIN=`which java`
