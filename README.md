@@ -8,7 +8,7 @@ as explained at http://creativecommons.org/publicdomain/zero/1.0
 
 ----------------------------------------------------------------------------
 
-Version: 2.0.9
+Version: 2.0.10
 ----------------------------------------------------------------------------
 
 jHiccup is a non-intrusive instrumentation tool that logs and records
