@@ -10,6 +10,7 @@ package org.jhiccup;
 import org.HdrHistogram.*;
 
 import java.io.*;
+import java.security.CodeSource;
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.lang.management.*;
@@ -299,13 +300,17 @@ public class HiccupMeter extends Thread {
                     File controlFilePath = new File(parentFileNamePart, childFileNamePart + ".c");
                     controlProcessLogFileName = controlFilePath.getPath();
 
+                    // Compute path to agent's JAR file
+                    CodeSource agentCodeSource = HiccupMeter.class.getProtectionDomain().getCodeSource();
+                    String agentPath = new File(agentCodeSource.getLocation().toURI()).getPath();
+
                     // Derive controlProcessCommand from our java home, class name, and parsed
                     // options:
                     controlProcessCommand =
                             System.getProperty("java.home") +
                                     File.separator + "bin" + File.separator + "java" +
                                     (controlProcessJvmArgsExplicitlySpecified ? " " + controlProcessJvmArgs : "") +
-                                    " -cp " + System.getProperty("java.class.path") +
+                                    " -cp " + agentPath +
                                     " -Dorg.jhiccup.avoidRecursion=true" +
                                     " " + HiccupMeter.class.getCanonicalName() +
                                     " -l " + controlProcessLogFileName +
