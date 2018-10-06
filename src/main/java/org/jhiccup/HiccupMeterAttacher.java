@@ -49,16 +49,16 @@ public class HiccupMeterAttacher {
             vm.detach();
             System.exit(0);
         } catch (IOException ex) {
-            System.out.println(ex);
+            ex.printStackTrace();
             System.exit(1);
         } catch (AttachNotSupportedException ex) {
-            System.out.println(ex);
+            ex.printStackTrace();
             System.exit(1);
         } catch (AgentInitializationException ex) {
-            System.out.println(ex);
+            ex.printStackTrace();
             System.exit(1);
         } catch ( AgentLoadException ex) {
-            System.out.println(ex);
+            ex.printStackTrace();
             System.exit(1);
         }
     }
