@@ -32,7 +32,7 @@ public class Idle extends Thread {
                 } else if (args[i].equals("-n")) {
                     config.useIdleReader = false;
                 } else if (args[i].equals("-t")) {
-                    runTimeMs = Long.parseLong(args[++i]);
+                    runTimeMs = Long.parseLong(args[++i]);  // lgtm [java/index-out-of-bounds]
                 } else {
                     throw new Exception("Invalid args");
                 }

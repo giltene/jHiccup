@@ -203,36 +203,36 @@ public class HiccupMeter extends Thread {
                         allocateObjects = true;
                     } else if (args[i].equals("-p")) {
                         attachToProcess = true;
-                        pidOfProcessToAttachTo = args[++i];
+                        pidOfProcessToAttachTo = args[++i];                 // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-j")) {
-                        agentJarFileName = args[++i];
+                        agentJarFileName = args[++i];                       // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-terminateWithStdInput")) {
                         terminateWithStdInput = true;
                     } else if (args[i].equals("-i")) {
-                        reportingIntervalMs = Long.parseLong(args[++i]);
+                        reportingIntervalMs = Long.parseLong(args[++i]);    // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-t")) {
-                        runTimeMs = Long.parseLong(args[++i]);
+                        runTimeMs = Long.parseLong(args[++i]);              // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-d")) {
-                        startDelayMs = Long.parseLong(args[++i]);
+                        startDelayMs = Long.parseLong(args[++i]);           // lgtm [java/index-out-of-bounds]
                         startDelayMsExplicitlySpecified = true;
                     } else if (args[i].equals("-r")) {
-                        resolutionMs = Double.parseDouble(args[++i]);
+                        resolutionMs = Double.parseDouble(args[++i]);       // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-s")) {
-                        numberOfSignificantValueDigits = Integer.parseInt(args[++i]);
+                        numberOfSignificantValueDigits = Integer.parseInt(args[++i]);   // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-l")) {
-                        logFileName = args[++i];
+                        logFileName = args[++i];                            // lgtm [java/index-out-of-bounds]
                         logFileExplicitlySpecified = true;
                     } else if (args[i].equals("-f")) {
-                        inputFileName = args[++i];
+                        inputFileName = args[++i];                          // lgtm [java/index-out-of-bounds]
                         lowestTrackableValue = 1L; // drop to ~1 nsec best-case resolution when processing files
                     } else if (args[i].equals("-fz")) {
                         fillInZerosInInputFile = true;
                     } else if (args[i].equals("-c")) {
                         launchControlProcess = true;
                     } else if (args[i].equals("-cfmb")) {
-                        launchControlProcessHeapSizeMBFilter = Long.parseLong(args[++i]);;
+                        launchControlProcessHeapSizeMBFilter = Long.parseLong(args[++i]);   // lgtm [java/index-out-of-bounds]
                     } else if (args[i].equals("-x")) {
-                        controlProcessJvmArgs = args[++i];
+                        controlProcessJvmArgs = args[++i];                  // lgtm [java/index-out-of-bounds]
                         controlProcessJvmArgsExplicitlySpecified = true;
                     } else if (args[i].equals("-o")) {
                         logFormatCsv = true;
