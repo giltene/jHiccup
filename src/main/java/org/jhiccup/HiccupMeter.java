@@ -10,6 +10,8 @@ package org.jhiccup;
 import org.HdrHistogram.*;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.CodeSource;
 import java.util.*;
 import java.text.SimpleDateFormat;
@@ -186,8 +188,26 @@ public class HiccupMeter extends Thread {
             final SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd.HHmm");
             final String formattedDate = formatter.format(new Date());
 
+
             logFileName = logFileName.replaceAll("%pid", processID);
             logFileName = logFileName.replaceAll("%date", formattedDate);
+
+            try {
+                // Extract host name from environment variables or IP address:
+                String host = System.getenv("HOSTNAME");
+                if (host == null) {
+                    host = System.getenv("HOST");
+                }
+                if (host == null) {
+                    host = System.getenv("COMPUTERNAME");
+                }
+                if (host == null) {
+                    InetAddress ipAddr = InetAddress.getLocalHost();
+                    host = ipAddr.getHostName();
+                }
+                logFileName = logFileName.replaceAll("%host", host);
+            } catch (UnknownHostException e) {
+            }
             return logFileName;
         }
 

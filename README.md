@@ -215,11 +215,11 @@ the same time.
 
 ----------------------------------------------------------------------------
 
-# Log file name recognizes and fills in %pid and %date terms
+# Log file name recognizes and fills in %pid , %date , and %host terms
 
-When a log file name is specified with the `-l` option, the terms `%pid`
-and `%date` will be filled in with the appropriate information. The default
-log file name setting is simply `hiccup.%date.%pid`.
+When a log file name is specified with the `-l` option, the terms `%pid`,
+`%date`,  and `%host` will be filled in with the appropriate information.
+The default log file name setting is simply `hiccup.%date.%pid`.
 
 ----------------------------------------------------------------------------
 
