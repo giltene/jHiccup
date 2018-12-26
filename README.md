@@ -274,7 +274,7 @@ Example (parsing gc log with +PrintGCTimeStamps):
 
     % java ... -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCTimeStamps -Xloggc:gc.log ...
     
-    % awk -F": " '/\[GC/ {t = $1; l = 1; while ((l == 1) && index($0, "Total time") == 0) { l = getline; } if (l == 1) {print t*1000.0, $3*1000.0;}}' gc.log > gcPauses.log
+    % awk -F": " '/Total time for which application threads were stopped/ {printf "%4.0f %4.3f\n", $1*1000.0, $3*1000.0;}' gc.log > gcPauses.log
 
     % java -jar jHiccup.jar -i 1000 -f gcPauses.log -fz -l pauses.hlog
   
@@ -282,7 +282,7 @@ Example (with both +PrintGCTimeStamps and +PrintGCDateStamps):
   
     % java ... -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xloggc:gc.log ...
      
-    % awk -F": " '/\[GC/ {t = $2; l = 1; while ((l == 1) && index($0, "Total time") == 0) { l = getline; } if (l == 1) {print t*1000.0, $4*1000.0;}}' gc.log > gcPauses.log
+    % awk -F": " '/Total time for which application threads were stopped/ {printf "%4.0f %4.3f\n", $2*1000.0, $4*1000.0;}' gc.log > gcPauses.log
  
     % java -jar jHiccup.jar -i 1000 -f gcPauses.log -fz -l pauses.hlog
     
