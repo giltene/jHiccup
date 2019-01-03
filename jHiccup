@@ -5,7 +5,7 @@
 # Written by Gil Tene, and released to the public domain, as explained at
 #  http://creativecommons.org/publicdomain/zero/1.0/
 #
-JHICCUP_Version=2.0.9
+JHICCUP_Version=2.0.10
 #
 # jHiccup is a platform pause measurement tool, it is meant to observe the
 # underlying platform (JVM, OS, HW, etc.) responsiveness while under an
