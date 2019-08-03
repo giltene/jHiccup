@@ -93,7 +93,7 @@ utility is provided. In it's simplest form, this utility can be used as such
     % jHiccupLogProcessor -i mylog.hlog -o mylog
 
 Which will produce log files `mylog` and `mylog.hgrm` containing a human readable
-interval log (with selcted percentiles in each interval), as well as a human
+interval log (with selected percentiles in each interval), as well as a human
 readable histogram percentile distribution log.
 
 jHiccupLogProcessor can also be used to produce log files for an arbitrary
@@ -254,7 +254,7 @@ Example:
 
 # Using jHiccup to process pause logs from e.g. gc log files:
 
-When run in the file injestion mode (`-f`), jHiccup's main HiccupMeter
+When run in the file injection mode (`-f`), jHiccup's main HiccupMeter
 class supports an optional "fill zeros" (`-fz`) mode. This mode is
 useful for processing input that represent pause events rather than
 latencies.
