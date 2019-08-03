@@ -53,14 +53,13 @@ You can find the available options for the Java agent mode by running:
 
 Here is a Java agent usage example with explicit parameters:
 
-    % java -javaagent:jHiccup.jar="-d 0 -i 1000 -l hiccuplog -c" MyProgram.jar -a -b -c
+    % java -javaagent:jHiccup.jar="-d 2000 -i 1000 -l hiccuplog -c" MyProgram.jar -a -b -c
 
 This example will record hiccups experienced during the running of `MyProgram.jar`
 in log file `hiccuplog`, while at the same time recording the hiccups experienced by
 a control process running in a separate JVM in the log file `c.hiccuplog`.
-Measurement will start immediately upon startups (rather than the 30 second
-default delay), and interval data will be records every 1 second (rather than the
-default 5 seconds).
+Measurement will start 2 seconds after startup (rather than immediately),
+and interval data will be recorded every 1 second (rather than the default 5 seconds).
 
 Useful Java agent related notes:
 
