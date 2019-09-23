@@ -1,6 +1,8 @@
 # jHiccup
 [![Build Status](https://travis-ci.org/giltene/jHiccup.svg?branch=master)](https://travis-ci.org/giltene/jHiccup)
+[![Java CI](https://github.com/giltene/jhiccup/workflows/Java%20CI/badge.svg)](https://github.com/giltene/jHiccup/actions)
 [![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/giltene/jHiccup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ----------------------------------------------------------------------------
 
 Written by Gil Tene of Azul Systems, and released to the public domain
