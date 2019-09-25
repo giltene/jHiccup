@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04, macOS-10.14, windows-2016]
-        java: [1.7, 1.8, 9, 10, 11, 12]
+        java: [7, 7u222, 8, 8u192, 9, 10, 11, 11.0.3, 12, 13]
       fail-fast: false
     name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
 
