@@ -234,11 +234,6 @@
             <artifactId>HdrHistogram</artifactId>
             <version>2.1.11</version>
         </dependency>
-        <dependency>
-            <groupId>org.heaputils</groupId>
-            <artifactId>HeapUseWatcher</artifactId>
-            <version>1.0.1</version>
-        </dependency>
     </dependencies>
 
     <profiles>
