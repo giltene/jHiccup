@@ -14,7 +14,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-      run: mvn package --file pom.xml
+      run: mvn package -B --file pom.xml
 
   test:
 
@@ -35,4 +35,4 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
     - name: Test with Maven
-      run: mvn test --file pom.xml
+      run: mvn test -B --file pom.xml
