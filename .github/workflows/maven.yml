@@ -23,7 +23,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04, macOS-latest, windows-2016]
         # test on both latest and specific update of each major version:
-        java: [7, 7.0.181, 8, 8.0.192, 9, 10, 11, 11.0.3, 12, 13, 13.0.4, 14, 15-ea, 16-ea]
+        java: [7, 7.0.181, 8, 8.0.192, 9, 10, 11, 11.0.3, 12, 13, 13.0.4, 14, 15, 16-ea]
       fail-fast: false
       max-parallel: 5
     name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
